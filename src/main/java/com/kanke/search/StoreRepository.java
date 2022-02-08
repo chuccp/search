@@ -11,9 +11,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.Query;
 
 import com.kanke.search.annotation.StoreIndex;
-import com.kanke.search.model.LuceneAbstract;
+import com.kanke.search.query.Group;
+import com.kanke.search.query.Pageable;
 
-public abstract class StoreRepository<T extends LuceneAbstract> {
+public abstract class StoreRepository<T> {
 	
 	
 	@SuppressWarnings("rawtypes")
@@ -21,9 +22,9 @@ public abstract class StoreRepository<T extends LuceneAbstract> {
 
 	public abstract StoreTemplate getStoreTemplate();
 
-	public void write(T t) {
+	public void insertOrUpdate(T t) {
 		try {
-			this.getStoreTemplate().write(t);
+			this.getStoreTemplate().writeOrUpdate(t);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -33,6 +34,17 @@ public abstract class StoreRepository<T extends LuceneAbstract> {
 		String index = this.getIndex();
 		return this.getStoreTemplate().search(index, query, top,this.getEntryClass());
 	}
+	
+
+	
+	public void delete(Query query) throws IOException {
+		this.getStoreTemplate().delete(getIndex(), query);
+	}
+	
+	public  List<T> group(Group group, Query query,Pageable pageable){
+		return this.getStoreTemplate().group(this.getIndex(), group, query,pageable);
+	}
+	
 	@SuppressWarnings("unchecked")
 	public Class<T> getEntryClass() {
 		@SuppressWarnings("rawtypes")

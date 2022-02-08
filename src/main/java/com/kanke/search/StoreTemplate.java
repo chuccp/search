@@ -13,14 +13,21 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.grouping.GroupDocs;
+import org.apache.lucene.search.grouping.GroupingSearch;
+import org.apache.lucene.search.grouping.TopGroups;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 
 import com.kanke.search.annotation.StoreIndex;
-import com.kanke.search.model.LuceneAbstract;
+import com.kanke.search.entry.StoreFilelds;
+import com.kanke.search.query.Group;
+import com.kanke.search.query.Pageable;
 import com.kanke.search.util.DocumentUtil;
 
 public class StoreTemplate {
@@ -34,36 +41,75 @@ public class StoreTemplate {
 		this.path = path;
 	}
 
-	public <T extends LuceneAbstract> void write(String index, List<T> list) throws IOException {
+	public <T> void writeOrUpdate(String index, List<T> list) throws IOException {
 		IndexWriter indexWriter = this.getIndexWriter(index);
-		for (T t : list) {
-			indexWriter.addDocument(DocumentUtil.toDoc(t));
-		}
-		indexWriter.flush();
-		indexWriter.commit();
-	}
-
-	public <T extends LuceneAbstract> void write(T t) throws IOException {
-		StoreIndex storeIndex = t.getClass().getAnnotation(StoreIndex.class);
-		if (storeIndex != null) {
-			IndexWriter indexWriter = this.getIndexWriter(storeIndex.value());
-			indexWriter.addDocument(DocumentUtil.toDoc(t));
+		if (!list.isEmpty()) {
+			T t1 = list.get(0);
+			StoreFilelds storeFilelds = StoreFilelds.get(t1.getClass());
+			String idName = storeFilelds.getIdField().getStoreName();
+			for (T t : list) {
+				Document doc = DocumentUtil.toDoc(t, storeFilelds);
+				indexWriter.updateDocument(new Term(idName,doc.get(idName)), doc);
+			}
 			indexWriter.flush();
 			indexWriter.commit();
 		}
 	}
 
-	public <T extends LuceneAbstract> void write(List<T> list) throws IOException {
+	public <T> void writeOrUpdate(T t) throws IOException {
+		StoreFilelds storeFilelds = StoreFilelds.get(t.getClass());
+		String idName = storeFilelds.getIdField().getStoreName();
+		IndexWriter indexWriter = this.getIndexWriter(storeFilelds.getStoreIndex());
+		Document doc = DocumentUtil.toDoc(t, storeFilelds);
+		indexWriter.updateDocument(new Term(idName,doc.get(idName)), doc);
+		indexWriter.flush();
+		indexWriter.commit();
+	}
+
+	public <T> List<T> group(String index, Group group, Query query,Pageable pageable) {
+		
+		List<T> list = new ArrayList<>();
+		
+		IndexReader indexReader = this.getIndexReader(index);
+		GroupingSearch groupingSearch = new GroupingSearch(group.getGroupSelector());
+
+		try {
+			
+			
+			TopGroups<BytesRef> topGroups = groupingSearch.search(new IndexSearcher(indexReader), query,pageable.getOffset(),pageable.getLimit());
+			
+			GroupDocs<BytesRef>[] groupsDocs = topGroups.groups;
+			
+			for(GroupDocs<BytesRef> groupDoc:groupsDocs) {
+				System.out.println(groupDoc.groupValue.utf8ToString());
+				System.out.println(groupDoc.totalHits.value);
+			}
+			System.out.println("====================");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return list;
+	}
+
+	public <T> void write(List<T> list) throws IOException {
 		if (list != null && !list.isEmpty()) {
 			T t = list.get(0);
 			StoreIndex storeIndex = t.getClass().getAnnotation(StoreIndex.class);
 			if (storeIndex != null) {
-				this.write(storeIndex.value(), list);
+				this.writeOrUpdate(t);
 			}
 		}
 	}
 
-	public <T extends LuceneAbstract> List<T> search(String index, Query query, int top, Class<T> clazz) {
+	public void delete(String index, Query query) throws IOException {
+		IndexWriter indexWriter = this.getIndexWriter(index);
+		indexWriter.deleteDocuments(query);
+		indexWriter.flush();
+		indexWriter.commit();
+	}
+
+	public <T> List<T> search(String index, Query query, int top, Class<T> clazz) {
 		IndexReader indexReader = this.getIndexReader(index);
 		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 		try {
@@ -71,7 +117,8 @@ public class StoreTemplate {
 			List<T> list = new ArrayList<>(topDocs.scoreDocs.length);
 			for (ScoreDoc sd : topDocs.scoreDocs) {
 				Document doc = indexSearcher.doc(sd.doc);
-				T t = DocumentUtil.toEntry(doc, clazz);
+				@SuppressWarnings("unchecked")
+				T t = (T) DocumentUtil.toEntry(doc, StoreFilelds.get(clazz));
 				list.add(t);
 			}
 			return list;

@@ -5,18 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.kanke.search.type.FileldType;
-
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.FIELD })
-public @interface StoreField {
-
-	String name() default "";
-
-	String value();
-	
-	FileldType fileldType() default FileldType.ALL;
-	
-	boolean isSort() default false;
+public @interface StoreIgnoreField {
 
 }

@@ -11,8 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.Query;
 
 import com.kanke.search.annotation.StoreIndex;
-import com.kanke.search.query.Group;
-import com.kanke.search.query.Pageable;
 
 public abstract class StoreRepository<T> {
 	
@@ -30,6 +28,14 @@ public abstract class StoreRepository<T> {
 		}
 	}
 	
+	public void insertOrUpdate(List<T> t) {
+		try {
+			this.getStoreTemplate().writeOrUpdate(getIndex(), t);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public  List<T> search(Query query, int top){
 		String index = this.getIndex();
 		return this.getStoreTemplate().search(index, query, top,this.getEntryClass());
@@ -41,9 +47,9 @@ public abstract class StoreRepository<T> {
 		this.getStoreTemplate().delete(getIndex(), query);
 	}
 	
-	public  List<T> group(Group group, Query query,Pageable pageable){
-		return this.getStoreTemplate().group(this.getIndex(), group, query,pageable);
-	}
+//	public  List<T> group(Group group, Query query,Pageable pageable){
+//		return this.getStoreTemplate().group(this.getIndex(), group, query,pageable);
+//	}
 	
 	@SuppressWarnings("unchecked")
 	public Class<T> getEntryClass() {

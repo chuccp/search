@@ -5,8 +5,9 @@ import java.util.Date;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.NumericDocValuesField;
 import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.SortedNumericDocValuesField;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
@@ -26,16 +27,29 @@ public class DocumentUtil {
 					String fieldName = field.getStoreName();
 					
 					if(field.isSort()) {
-						SortedDocValuesField sortedDocValuesField = new SortedDocValuesField(fieldName,new BytesRef((String) obj));
-						document.add(sortedDocValuesField);
+						if (obj instanceof String) {
+							SortedDocValuesField sortedDocValuesField = new SortedDocValuesField(fieldName,new BytesRef((String) obj));
+							document.add(sortedDocValuesField);
+						} else if (obj instanceof Long) {
+							document.add(new SortedNumericDocValuesField(fieldName, (Long) obj));
+						} else if (obj instanceof Date) {
+							document.add(new SortedNumericDocValuesField(fieldName, ((Date) obj).getTime()));
+						}else if (obj instanceof Integer) {
+							document.add(new SortedNumericDocValuesField(fieldName, (Integer) obj));
+						}
 					}
 					if (obj instanceof String) {
 						StringField stringField = new StringField(fieldName, (String) obj, org.apache.lucene.document.Field.Store.YES);
 						document.add(stringField);
 					} else if (obj instanceof Long) {
-						document.add(new NumericDocValuesField(fieldName, (Long) obj));
+						StoredField storedField = new StoredField(fieldName, (Long) obj);
+						document.add(storedField);
 					} else if (obj instanceof Date) {
-						document.add(new NumericDocValuesField(fieldName, ((Date) obj).getTime()));
+						StoredField storedField = new StoredField(fieldName, ((Date) obj).getTime());
+						document.add(storedField);
+					}else if (obj instanceof Integer) {
+						StoredField storedField = new StoredField(fieldName, (Integer) obj);
+						document.add(storedField);
 					}
 				}
 			} catch (IllegalArgumentException e) {
@@ -62,6 +76,8 @@ public class DocumentUtil {
 						FieldUtils.writeField(field.getField(), t, indexableField.numericValue().longValue(), true);
 					}else if (type==Date.class) {
 						FieldUtils.writeField(field.getField(), t, new Date(indexableField.numericValue().longValue()), true);
+					}else if (type==Integer.class) {
+						FieldUtils.writeField(field.getField(), t, indexableField.numericValue().intValue(), true);
 					}
 				}
 			}

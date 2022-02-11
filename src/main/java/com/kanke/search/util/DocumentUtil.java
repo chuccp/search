@@ -15,16 +15,15 @@ import org.apache.lucene.util.BytesRef;
 import com.kanke.search.entry.StoreFileld;
 import com.kanke.search.entry.StoreFilelds;
 
-
 public class DocumentUtil {
 
-	public static <T> Document toDoc(T t,StoreFilelds storeFilelds) {
+	public static <T> Document toDoc(T t, StoreFilelds storeFilelds) {
 		Document document = new Document();
 		for (StoreFileld field : storeFilelds.getFields()) {
 			try {
 				Object obj = FieldUtils.readField(field.getField(), t, true);
 				if (obj != null) {
-					if(field.isSort()) {
+					if (field.isSort()) {
 						if (obj instanceof String) {
 							SortedDocValuesField sortedDocValuesField = new SortedDocValuesField(field.getSortName(),new BytesRef((String) obj));
 							document.add(sortedDocValuesField);
@@ -32,13 +31,15 @@ public class DocumentUtil {
 							document.add(new NumericDocValuesField(field.getSortName(), (Long) obj));
 						} else if (obj instanceof Date) {
 							document.add(new NumericDocValuesField(field.getSortName(), ((Date) obj).getTime()));
-						}else if (obj instanceof Integer) {
+						} else if (obj instanceof Integer) {
 							document.add(new NumericDocValuesField(field.getSortName(), (Integer) obj));
+						}else if (obj instanceof Boolean) {
+							document.add(new NumericDocValuesField(field.getSortName(),  ((Boolean) obj) == true ? 1 : 0));
 						}
 					}
 					String fieldName = field.getStoreName();
 					if (obj instanceof String) {
-						StringField stringField = new StringField(fieldName, (String) obj, org.apache.lucene.document.Field.Store.YES);
+						StringField stringField = new StringField(fieldName, (String) obj,org.apache.lucene.document.Field.Store.YES);
 						document.add(stringField);
 					} else if (obj instanceof Long) {
 						StoredField storedField = new StoredField(fieldName, (Long) obj);
@@ -46,8 +47,11 @@ public class DocumentUtil {
 					} else if (obj instanceof Date) {
 						StoredField storedField = new StoredField(fieldName, ((Date) obj).getTime());
 						document.add(storedField);
-					}else if (obj instanceof Integer) {
+					} else if (obj instanceof Integer) {
 						StoredField storedField = new StoredField(fieldName, (Integer) obj);
+						document.add(storedField);
+					} else if (obj instanceof Boolean) {
+						StoredField storedField = new StoredField(fieldName, ((Boolean) obj) == true ? 1 : 0);
 						document.add(storedField);
 					}
 				}
@@ -59,24 +63,27 @@ public class DocumentUtil {
 		}
 		return document;
 	}
-	
-	public static Object toEntry(Document doc,StoreFilelds storeFilelds) {
+
+	public static Object toEntry(Document doc, StoreFilelds storeFilelds) {
 		try {
 
 			Object t = storeFilelds.getStoreClazz().newInstance();
 			for (StoreFileld field : storeFilelds.getFields()) {
 				String fieldName = field.getStoreName();
-				IndexableField  indexableField  = doc.getField(fieldName);
-				if(indexableField!=null) {
+				IndexableField indexableField = doc.getField(fieldName);
+				if (indexableField != null) {
 					Type type = field.getField().getGenericType();
-					if(type==String.class) {
+					if (type == String.class) {
 						FieldUtils.writeField(field.getField(), t, indexableField.stringValue(), true);
-					}else if (type==Long.class) {
+					} else if (type == Long.class) {
 						FieldUtils.writeField(field.getField(), t, indexableField.numericValue().longValue(), true);
-					}else if (type==Date.class) {
-						FieldUtils.writeField(field.getField(), t, new Date(indexableField.numericValue().longValue()), true);
-					}else if (type==Integer.class) {
+					} else if (type == Date.class) {
+						FieldUtils.writeField(field.getField(), t, new Date(indexableField.numericValue().longValue()),true);
+					} else if (type == Integer.class) {
 						FieldUtils.writeField(field.getField(), t, indexableField.numericValue().intValue(), true);
+					}
+					else if (type == Boolean.class) {
+						FieldUtils.writeField(field.getField(), t, indexableField.numericValue().intValue()==1, true);
 					}
 				}
 			}

@@ -46,11 +46,19 @@ public class StoreTemplate {
 		this.path = path;
 	}
 
+	private void saveStoreFilelds(StoreFilelds storeFilelds) {
+		
+		
+		
+	}
 	public <T> void writeOrUpdate(String index, List<T> list) throws IOException {
 		IndexWriter indexWriter = this.getIndexWriter(index);
 		if (!list.isEmpty()) {
 			T t1 = list.get(0);
 			StoreFilelds storeFilelds = StoreFilelds.get(t1.getClass());
+			
+			this.saveStoreFilelds(storeFilelds);
+			
 			String idName = storeFilelds.getIdField().getStoreName();
 			for (T t : list) {
 				Document doc = DocumentUtil.toDoc(t, storeFilelds);

@@ -29,6 +29,7 @@ import org.apache.lucene.util.BytesRef;
 
 import com.kanke.search.annotation.StoreIndex;
 import com.kanke.search.entry.StoreFileld;
+import com.kanke.search.entry.StoreFileldIndex;
 import com.kanke.search.entry.StoreFilelds;
 import com.kanke.search.query.Group;
 import com.kanke.search.query.GroupResponse;
@@ -45,20 +46,48 @@ public class StoreTemplate {
 	public StoreTemplate(Path path) {
 		this.path = path;
 	}
+	
+	
+	private Map<String, StoreFileldIndex> storeFileldIndexMap = new LinkedHashMap<>();
+	
 
 	private void saveStoreFilelds(StoreFilelds storeFilelds) {
-		
-		
-		
+
+		List<StoreFileld> list = storeFilelds.getFields();
+		List<StoreFileldIndex> slist = new ArrayList<>();
+		for (StoreFileld sf : list) {
+			StoreFileldIndex sfi = new StoreFileldIndex();
+			sfi.setClassName(storeFilelds.getStoreClazz().getName());
+			sfi.setIndexName(storeFilelds.getStoreIndex());
+			sfi.setFiledName(sf.getFieldName());
+			sfi.setStoreName(sf.getStoreName());
+			sfi.setGenericType(sf.getField().toGenericString());
+			sfi.setSort(sf.isSort());
+			sfi.setId(sfi.getIndexName() + "_" + sfi.getStoreName());
+			sfi.setSortName(sf.getSortName());
+			if( storeFileldIndexMap.containsKey(sfi.getId())) {
+				if(!storeFileldIndexMap.get(sfi.getId()).equals(sfi)) {
+					storeFileldIndexMap.put(sfi.getId(), sfi);
+					slist.add(sfi);
+				}
+			}else {
+				storeFileldIndexMap.put(sfi.getId(), sfi);
+				slist.add(sfi);
+			}
+		}
+		if (!slist.isEmpty()) {
+			try {
+				this.writeOrUpdate0(StoreFilelds.get(StoreFileldIndex.class), slist);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+		}
 	}
-	public <T> void writeOrUpdate(String index, List<T> list) throws IOException {
-		IndexWriter indexWriter = this.getIndexWriter(index);
+
+	private <T> void writeOrUpdate0(StoreFilelds storeFilelds, List<T> list) throws IOException {
+		IndexWriter indexWriter = this.getIndexWriter(storeFilelds.getStoreIndex());
 		if (!list.isEmpty()) {
-			T t1 = list.get(0);
-			StoreFilelds storeFilelds = StoreFilelds.get(t1.getClass());
-			
-			this.saveStoreFilelds(storeFilelds);
-			
 			String idName = storeFilelds.getIdField().getStoreName();
 			for (T t : list) {
 				Document doc = DocumentUtil.toDoc(t, storeFilelds);
@@ -69,8 +98,18 @@ public class StoreTemplate {
 		}
 	}
 
+	public <T> void writeOrUpdate(List<T> list) throws IOException {
+		if (!list.isEmpty()) {
+			T t1 = list.get(0);
+			StoreFilelds storeFilelds = StoreFilelds.get(t1.getClass());
+			writeOrUpdate0(storeFilelds, list);
+			this.saveStoreFilelds(storeFilelds);
+		}
+	}
+
 	public <T> void writeOrUpdate(T t) throws IOException {
 		StoreFilelds storeFilelds = StoreFilelds.get(t.getClass());
+		this.saveStoreFilelds(storeFilelds);
 		String idName = storeFilelds.getIdField().getStoreName();
 		IndexWriter indexWriter = this.getIndexWriter(storeFilelds.getStoreIndex());
 		Document doc = DocumentUtil.toDoc(t, storeFilelds);
@@ -79,13 +118,12 @@ public class StoreTemplate {
 		indexWriter.commit();
 	}
 
-	public  void deleteIndex(String index) throws IOException {
+	public void deleteIndex(String index) throws IOException {
 		File filePath = new File(path.toFile(), index);
 		FileUtils.deleteDirectory(filePath);
-		
-		
+
 	}
-	
+
 	public GroupResponse group(String index, Group group, Query query, Pageable pageable) {
 
 		IndexReader indexReader = this.getIndexReader(index);
@@ -125,14 +163,17 @@ public class StoreTemplate {
 		indexWriter.flush();
 		indexWriter.commit();
 	}
-	public <T> List<T> search(String index, Query query, com.kanke.search.query.Sort sort, int top, Class<T> clazz){
+
+	public <T> List<T> search(String index, Query query, com.kanke.search.query.Sort sort, int top, Class<T> clazz) {
 		StoreFilelds storeFilelds = StoreFilelds.get(clazz);
 		StoreFileld storeFileld = storeFilelds.getStoreFileld(sort.getFileName());
-		return this.search0(index, query,new Sort(new SortField(storeFileld.getSortName(),storeFileld.getSortType(), sort.isReverse())), top, storeFilelds);
-		
+		return this.search0(index, query,
+				new Sort(new SortField(storeFileld.getSortName(), storeFileld.getSortType(), sort.isReverse())), top,
+				storeFilelds);
+
 	}
 
-	private <T> List<T> search0(String index, Query query, Sort sort, int top,StoreFilelds storeFilelds) {
+	private <T> List<T> search0(String index, Query query, Sort sort, int top, StoreFilelds storeFilelds) {
 		IndexReader indexReader = this.getIndexReader(index);
 		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 		try {
@@ -146,7 +187,7 @@ public class StoreTemplate {
 			for (ScoreDoc sd : topDocs.scoreDocs) {
 				Document doc = indexSearcher.doc(sd.doc);
 				@SuppressWarnings("unchecked")
-				T t = (T) DocumentUtil.toEntry(doc,storeFilelds);
+				T t = (T) DocumentUtil.toEntry(doc, storeFilelds);
 				list.add(t);
 			}
 			return list;
@@ -178,7 +219,7 @@ public class StoreTemplate {
 			FSDirectory fSDirectory = FSDirectory.open(filePath.toPath());
 			IndexWriterConfig indexWriterConfig = new IndexWriterConfig();
 			IndexWriter indexWriter = new IndexWriter(fSDirectory, indexWriterConfig);
-			
+
 			indexWriterMap.put(index, indexWriter);
 			return indexWriter;
 		}

@@ -29,7 +29,7 @@ public abstract class StoreRepository<T> {
 
 	public void insertOrUpdate(List<T> t) {
 		try {
-			this.getStoreTemplate().writeOrUpdate(getIndex(), t);
+			this.getStoreTemplate().writeOrUpdate(t);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

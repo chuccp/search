@@ -5,8 +5,8 @@ import java.util.Date;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.NumericDocValuesField;
 import org.apache.lucene.document.SortedDocValuesField;
-import org.apache.lucene.document.SortedNumericDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexableField;
@@ -24,20 +24,19 @@ public class DocumentUtil {
 			try {
 				Object obj = FieldUtils.readField(field.getField(), t, true);
 				if (obj != null) {
-					String fieldName = field.getStoreName();
-					
 					if(field.isSort()) {
 						if (obj instanceof String) {
-							SortedDocValuesField sortedDocValuesField = new SortedDocValuesField(fieldName,new BytesRef((String) obj));
+							SortedDocValuesField sortedDocValuesField = new SortedDocValuesField(field.getSortName(),new BytesRef((String) obj));
 							document.add(sortedDocValuesField);
 						} else if (obj instanceof Long) {
-							document.add(new SortedNumericDocValuesField(fieldName, (Long) obj));
+							document.add(new NumericDocValuesField(field.getSortName(), (Long) obj));
 						} else if (obj instanceof Date) {
-							document.add(new SortedNumericDocValuesField(fieldName, ((Date) obj).getTime()));
+							document.add(new NumericDocValuesField(field.getSortName(), ((Date) obj).getTime()));
 						}else if (obj instanceof Integer) {
-							document.add(new SortedNumericDocValuesField(fieldName, (Integer) obj));
+							document.add(new NumericDocValuesField(field.getSortName(), (Integer) obj));
 						}
 					}
+					String fieldName = field.getStoreName();
 					if (obj instanceof String) {
 						StringField stringField = new StringField(fieldName, (String) obj, org.apache.lucene.document.Field.Store.YES);
 						document.add(stringField);

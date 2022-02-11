@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -17,6 +18,8 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.grouping.GroupDocs;
 import org.apache.lucene.search.grouping.GroupingSearch;
@@ -25,8 +28,10 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 
 import com.kanke.search.annotation.StoreIndex;
+import com.kanke.search.entry.StoreFileld;
 import com.kanke.search.entry.StoreFilelds;
 import com.kanke.search.query.Group;
+import com.kanke.search.query.GroupResponse;
 import com.kanke.search.query.Pageable;
 import com.kanke.search.util.DocumentUtil;
 
@@ -49,7 +54,7 @@ public class StoreTemplate {
 			String idName = storeFilelds.getIdField().getStoreName();
 			for (T t : list) {
 				Document doc = DocumentUtil.toDoc(t, storeFilelds);
-				indexWriter.updateDocument(new Term(idName,doc.get(idName)), doc);
+				indexWriter.updateDocument(new Term(idName, doc.get(idName)), doc);
 			}
 			indexWriter.flush();
 			indexWriter.commit();
@@ -61,35 +66,39 @@ public class StoreTemplate {
 		String idName = storeFilelds.getIdField().getStoreName();
 		IndexWriter indexWriter = this.getIndexWriter(storeFilelds.getStoreIndex());
 		Document doc = DocumentUtil.toDoc(t, storeFilelds);
-		indexWriter.updateDocument(new Term(idName,doc.get(idName)), doc);
+		indexWriter.updateDocument(new Term(idName, doc.get(idName)), doc);
 		indexWriter.flush();
 		indexWriter.commit();
 	}
 
-	public <T> List<T> group(String index, Group group, Query query,Pageable pageable) {
+	public  void deleteIndex(String index) throws IOException {
+		File filePath = new File(path.toFile(), index);
+		FileUtils.deleteDirectory(filePath);
 		
-		List<T> list = new ArrayList<>();
 		
+	}
+	
+	public GroupResponse group(String index, Group group, Query query, Pageable pageable) {
+
 		IndexReader indexReader = this.getIndexReader(index);
 		GroupingSearch groupingSearch = new GroupingSearch(group.getGroupSelector());
 
 		try {
-			
-			
-			TopGroups<BytesRef> topGroups = groupingSearch.search(new IndexSearcher(indexReader), query,pageable.getOffset(),pageable.getLimit());
-			
+
+			TopGroups<BytesRef> topGroups = groupingSearch.search(new IndexSearcher(indexReader), query,
+					pageable.getOffset(), pageable.getLimit());
+
 			GroupDocs<BytesRef>[] groupsDocs = topGroups.groups;
-			
-			for(GroupDocs<BytesRef> groupDoc:groupsDocs) {
+
+			for (GroupDocs<BytesRef> groupDoc : groupsDocs) {
 				System.out.println(groupDoc.groupValue.utf8ToString());
 				System.out.println(groupDoc.totalHits.value);
 			}
-			System.out.println("====================");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		return list;
+		return new GroupResponse();
 	}
 
 	public <T> void write(List<T> list) throws IOException {
@@ -108,23 +117,39 @@ public class StoreTemplate {
 		indexWriter.flush();
 		indexWriter.commit();
 	}
+	public <T> List<T> search(String index, Query query, com.kanke.search.query.Sort sort, int top, Class<T> clazz){
+		StoreFilelds storeFilelds = StoreFilelds.get(clazz);
+		StoreFileld storeFileld = storeFilelds.getStoreFileld(sort.getFileName());
+		return this.search0(index, query,new Sort(new SortField(storeFileld.getSortName(),storeFileld.getSortType(), sort.isReverse())), top, storeFilelds);
+		
+	}
 
-	public <T> List<T> search(String index, Query query, int top, Class<T> clazz) {
+	private <T> List<T> search0(String index, Query query, Sort sort, int top,StoreFilelds storeFilelds) {
 		IndexReader indexReader = this.getIndexReader(index);
 		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 		try {
-			TopDocs topDocs = indexSearcher.search(query, top);
+			TopDocs topDocs = null;
+			if (sort != null) {
+				topDocs = indexSearcher.search(query, top, sort);
+			} else {
+				topDocs = indexSearcher.search(query, top);
+			}
 			List<T> list = new ArrayList<>(topDocs.scoreDocs.length);
 			for (ScoreDoc sd : topDocs.scoreDocs) {
 				Document doc = indexSearcher.doc(sd.doc);
 				@SuppressWarnings("unchecked")
-				T t = (T) DocumentUtil.toEntry(doc, StoreFilelds.get(clazz));
+				T t = (T) DocumentUtil.toEntry(doc,storeFilelds);
 				list.add(t);
 			}
 			return list;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public <T> List<T> search(String index, Query query, int top, Class<T> clazz) {
+		StoreFilelds storeFilelds = StoreFilelds.get(clazz);
+		return this.search0(index, query, null, top, storeFilelds);
 	}
 
 	public Integer num(String index) {
@@ -145,6 +170,7 @@ public class StoreTemplate {
 			FSDirectory fSDirectory = FSDirectory.open(filePath.toPath());
 			IndexWriterConfig indexWriterConfig = new IndexWriterConfig();
 			IndexWriter indexWriter = new IndexWriter(fSDirectory, indexWriterConfig);
+			
 			indexWriterMap.put(index, indexWriter);
 			return indexWriter;
 		}

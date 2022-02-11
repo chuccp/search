@@ -2,8 +2,11 @@ package com.kanke.search.entry;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
 import com.kanke.search.annotation.StoreField;
@@ -18,6 +21,8 @@ public class StoreFilelds {
 	private StoreFileld idField;
 
 	private List<StoreFileld> fields = new ArrayList<StoreFileld>();
+	
+	private Map<String,StoreFileld> storeFileldMap = new HashMap<>();
 
 	private String storeIndex;
 
@@ -48,6 +53,7 @@ public class StoreFilelds {
 
 	public void addFields(StoreFileld storeFileld) {
 		fields.add(storeFileld);
+		storeFileldMap.put(storeFileld.getStoreName(), storeFileld);
 	}
 	
 	
@@ -57,6 +63,10 @@ public class StoreFilelds {
 
 	public void setStoreIndex(String storeIndex) {
 		this.storeIndex = storeIndex;
+	}
+	
+	public StoreFileld getStoreFileld(String storeName) {
+		return storeFileldMap.get(storeName);
 	}
 
 	public static StoreFilelds get(Class<?> cls) {
@@ -79,21 +89,22 @@ public class StoreFilelds {
 				storeFileld.setFieldName(fieldName);
 				storeFileld.setField(field);
 				if (storeField != null) {
+					String v=storeField.value();
+					if(StringUtils.isBlank(v)) {
+						v = storeField.name();
+					}
 					storeFileld.setStoreName(storeField.value());
 					storeFileld.setSort(storeField.isSort());
 				} else {
 					storeFileld.setStoreName(fieldName);
 					storeFileld.setSort(false);
 				}
-				
-				
-				
 				StoreFieldId storeFieldId = field.getAnnotation(StoreFieldId.class);
 				if (storeFieldId != null) {
 					storeFileld.setId(true);
 					storeFilelds.idField = storeFileld;
 				}
-				storeFilelds.fields.add(storeFileld);
+				storeFilelds.addFields(storeFileld);
 			}
 		}
 		return storeFilelds;

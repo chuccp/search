@@ -13,10 +13,9 @@ import org.apache.lucene.search.Query;
 import com.kanke.search.annotation.StoreIndex;
 
 public abstract class StoreRepository<T> {
-	
-	
+
 	@SuppressWarnings("rawtypes")
-	private  static  Map<Class<? extends StoreRepository>,Class<?>> classMap = new HashMap<>();
+	private static Map<Class<? extends StoreRepository>, Class<?>> classMap = new HashMap<>();
 
 	public abstract StoreTemplate getStoreTemplate();
 
@@ -27,7 +26,7 @@ public abstract class StoreRepository<T> {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void insertOrUpdate(List<T> t) {
 		try {
 			this.getStoreTemplate().writeOrUpdate(getIndex(), t);
@@ -35,27 +34,35 @@ public abstract class StoreRepository<T> {
 			e.printStackTrace();
 		}
 	}
-	
-	public  List<T> search(Query query, int top){
-		String index = this.getIndex();
-		return this.getStoreTemplate().search(index, query, top,this.getEntryClass());
-	}
-	
 
-	
+	public List<T> search(Query query, int top) {
+		String index = this.getIndex();
+		return this.getStoreTemplate().search(index, query, top, this.getEntryClass());
+	}
+
+
+	public List<T> search(Query query, com.kanke.search.query.Sort sort, int top) {
+		String index = this.getIndex();
+		return this.getStoreTemplate().search(index,query,sort,top, this.getEntryClass());
+	}
+
 	public void delete(Query query) throws IOException {
 		this.getStoreTemplate().delete(getIndex(), query);
 	}
-	
+
+	public void deleteIndex() throws IOException {
+		this.getStoreTemplate().deleteIndex(getIndex());
+	}
+
 //	public  List<T> group(Group group, Query query,Pageable pageable){
 //		return this.getStoreTemplate().group(this.getIndex(), group, query,pageable);
 //	}
-	
+
 	@SuppressWarnings("unchecked")
 	public Class<T> getEntryClass() {
 		@SuppressWarnings("rawtypes")
 		Class<? extends StoreRepository> thizCls = this.getClass();
-		if(classMap.containsKey(thizCls)) {
+		if (classMap.containsKey(thizCls)) {
 			return (Class<T>) classMap.get(thizCls);
 		}
 		Type genericArrayType = thizCls.getGenericSuperclass();
@@ -73,6 +80,7 @@ public abstract class StoreRepository<T> {
 		}
 		return null;
 	}
+
 	public String getIndex() {
 		StoreIndex storeIndex = this.getEntryClass().getAnnotation(StoreIndex.class);
 		return storeIndex.value();

@@ -10,11 +10,13 @@ public class StoreFileld {
 
 	private Field field;
 
-	private String fieldName;
-
-	private String sortName;
 
 	private String storeName;
+
+
+	public String getStoreName() {
+		return storeName;
+	}
 
 	private boolean isId;
 
@@ -37,15 +39,7 @@ public class StoreFileld {
 	}
 
 	public String getFieldName() {
-		return fieldName;
-	}
-
-	public void setFieldName(String fieldName) {
-		this.fieldName = fieldName;
-	}
-
-	public String getStoreName() {
-		return storeName;
+		return field.getName();
 	}
 
 	public void setStoreName(String storeName) {
@@ -62,20 +56,13 @@ public class StoreFileld {
 
 	public SortField.Type getSortType() {
 		Type type = field.getGenericType();
-		if (type == Long.class ||type == Date.class) {
+		if (type == Long.class || type == Date.class) {
 			return SortField.Type.LONG;
 		}
 		if (type == Integer.class) {
 			return SortField.Type.INT;
 		}
 		return SortField.Type.DOC;
-	}
-
-	public String getSortName() {
-		if(sortName==null) {
-			sortName = this.fieldName + "_" + this.getSortType().name();
-		}
-		return sortName;
 	}
 
 }

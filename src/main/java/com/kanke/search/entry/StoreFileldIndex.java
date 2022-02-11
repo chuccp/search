@@ -2,6 +2,7 @@ package com.kanke.search.entry;
 
 import java.util.Objects;
 
+import com.kanke.search.annotation.StoreFieldId;
 import com.kanke.search.annotation.StoreIndex;
 
 @StoreIndex("StoreFileldIndex")
@@ -22,6 +23,7 @@ public class StoreFileldIndex {
 	
 	private boolean sort;
 	
+	@StoreFieldId
 	private String id;
 	
 	

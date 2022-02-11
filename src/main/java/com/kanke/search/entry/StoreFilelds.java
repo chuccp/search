@@ -21,11 +21,10 @@ public class StoreFilelds {
 	private StoreFileld idField;
 
 	private List<StoreFileld> fields = new ArrayList<StoreFileld>();
-	
-	private Map<String,StoreFileld> storeFileldMap = new HashMap<>();
+
+	private Map<String, StoreFileld> storeFileldMap = new HashMap<>();
 
 	private String storeIndex;
-
 
 	public Class<?> getStoreClazz() {
 		return storeClazz;
@@ -55,8 +54,7 @@ public class StoreFilelds {
 		fields.add(storeFileld);
 		storeFileldMap.put(storeFileld.getStoreName(), storeFileld);
 	}
-	
-	
+
 	public String getStoreIndex() {
 		return storeIndex;
 	}
@@ -64,7 +62,7 @@ public class StoreFilelds {
 	public void setStoreIndex(String storeIndex) {
 		this.storeIndex = storeIndex;
 	}
-	
+
 	public StoreFileld getStoreFileld(String storeName) {
 		return storeFileldMap.get(storeName);
 	}
@@ -74,26 +72,21 @@ public class StoreFilelds {
 		StoreFilelds storeFilelds = new StoreFilelds();
 		storeFilelds.setStoreClazz(cls);
 		StoreIndex storeIndex = cls.getAnnotation(StoreIndex.class);
-		if(storeIndex!=null) {
+		if (storeIndex != null) {
 			storeFilelds.setStoreIndex(storeIndex.value());
-		}else {
+		} else {
 			storeFilelds.setStoreIndex(cls.getSimpleName());
 		}
-		
+
 		for (Field field : fields) {
 			StoreIgnoreField storeIgnoreField = field.getAnnotation(StoreIgnoreField.class);
 			if (storeIgnoreField == null) {
 				StoreFileld storeFileld = new StoreFileld();
+				storeFileld.setField(field);
 				StoreField storeField = field.getAnnotation(StoreField.class);
 				String fieldName = field.getName();
-				storeFileld.setFieldName(fieldName);
-				storeFileld.setField(field);
 				if (storeField != null) {
-					String v=storeField.value();
-					if(StringUtils.isBlank(v)) {
-						v = storeField.name();
-					}
-					storeFileld.setStoreName(storeField.value());
+					storeFileld.setStoreName(StringUtils.firstNonBlank(storeField.value(), storeField.name(), fieldName));
 					storeFileld.setSort(storeField.isSort());
 				} else {
 					storeFileld.setStoreName(fieldName);
@@ -107,8 +100,8 @@ public class StoreFilelds {
 				storeFilelds.addFields(storeFileld);
 			}
 		}
+
 		return storeFilelds;
 	}
-
 
 }

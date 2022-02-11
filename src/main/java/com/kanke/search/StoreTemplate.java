@@ -64,7 +64,7 @@ public class StoreTemplate {
 			sfi.setGenericType(sf.getField().toGenericString());
 			sfi.setSort(sf.isSort());
 			sfi.setId(sfi.getIndexName() + "_" + sfi.getStoreName());
-			sfi.setSortName(sf.getSortName());
+			sfi.setSortName(sf.getStoreName());
 			if( storeFileldIndexMap.containsKey(sfi.getId())) {
 				if(!storeFileldIndexMap.get(sfi.getId()).equals(sfi)) {
 					storeFileldIndexMap.put(sfi.getId(), sfi);
@@ -168,7 +168,7 @@ public class StoreTemplate {
 		StoreFilelds storeFilelds = StoreFilelds.get(clazz);
 		StoreFileld storeFileld = storeFilelds.getStoreFileld(sort.getFileName());
 		return this.search0(index, query,
-				new Sort(new SortField(storeFileld.getSortName(), storeFileld.getSortType(), sort.isReverse())), top,
+				new Sort(new SortField(storeFileld.getStoreName(), storeFileld.getSortType(), sort.isReverse())), top,
 				storeFilelds);
 
 	}

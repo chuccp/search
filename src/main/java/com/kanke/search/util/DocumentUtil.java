@@ -25,16 +25,16 @@ public class DocumentUtil {
 				if (obj != null) {
 					if (field.isSort()) {
 						if (obj instanceof String) {
-							SortedDocValuesField sortedDocValuesField = new SortedDocValuesField(field.getSortName(),new BytesRef((String) obj));
+							SortedDocValuesField sortedDocValuesField = new SortedDocValuesField(field.getStoreName(),new BytesRef((String) obj));
 							document.add(sortedDocValuesField);
 						} else if (obj instanceof Long) {
-							document.add(new NumericDocValuesField(field.getSortName(), (Long) obj));
+							document.add(new NumericDocValuesField(field.getStoreName(), (Long) obj));
 						} else if (obj instanceof Date) {
-							document.add(new NumericDocValuesField(field.getSortName(), ((Date) obj).getTime()));
+							document.add(new NumericDocValuesField(field.getStoreName(), ((Date) obj).getTime()));
 						} else if (obj instanceof Integer) {
-							document.add(new NumericDocValuesField(field.getSortName(), (Integer) obj));
+							document.add(new NumericDocValuesField(field.getStoreName(), (Integer) obj));
 						}else if (obj instanceof Boolean) {
-							document.add(new NumericDocValuesField(field.getSortName(),  ((Boolean) obj) == true ? 1 : 0));
+							document.add(new NumericDocValuesField(field.getStoreName(),  ((Boolean) obj) == true ? 1 : 0));
 						}
 					}
 					String fieldName = field.getStoreName();

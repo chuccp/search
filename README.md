@@ -1,2 +1,2 @@
 # search
-基于lucene 搜索功能
+基于lucene二次封装的 搜索功能

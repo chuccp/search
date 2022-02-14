@@ -5,6 +5,7 @@ import java.util.Date;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.FloatDocValuesField;
 import org.apache.lucene.document.NumericDocValuesField;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
@@ -35,6 +36,8 @@ public class DocumentUtil {
 							document.add(new NumericDocValuesField(field.getStoreName(), (Integer) obj));
 						}else if (obj instanceof Boolean) {
 							document.add(new NumericDocValuesField(field.getStoreName(),  ((Boolean) obj) == true ? 1 : 0));
+						}else if (obj instanceof Float) {
+							document.add(new FloatDocValuesField(field.getStoreName(),  (Float)obj));
 						}
 					}
 					String fieldName = field.getStoreName();
@@ -52,6 +55,9 @@ public class DocumentUtil {
 						document.add(storedField);
 					} else if (obj instanceof Boolean) {
 						StoredField storedField = new StoredField(fieldName, ((Boolean) obj) == true ? 1 : 0);
+						document.add(storedField);
+					}else if (obj instanceof Float) {
+						StoredField storedField = new StoredField(fieldName, (Float) obj);
 						document.add(storedField);
 					}
 				}
@@ -81,9 +87,10 @@ public class DocumentUtil {
 						FieldUtils.writeField(field.getField(), t, new Date(indexableField.numericValue().longValue()),true);
 					} else if (type == Integer.class) {
 						FieldUtils.writeField(field.getField(), t, indexableField.numericValue().intValue(), true);
-					}
-					else if (type == Boolean.class) {
+					}else if (type == Boolean.class) {
 						FieldUtils.writeField(field.getField(), t, indexableField.numericValue().intValue()==1, true);
+					}else if (type == Float.class) {
+						FieldUtils.writeField(field.getField(), t, indexableField.numericValue().floatValue(), true);
 					}
 				}
 			}

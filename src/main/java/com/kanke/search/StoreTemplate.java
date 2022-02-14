@@ -31,8 +31,10 @@ import com.kanke.search.annotation.StoreIndex;
 import com.kanke.search.entry.StoreFileld;
 import com.kanke.search.entry.StoreFileldIndex;
 import com.kanke.search.entry.StoreFilelds;
+import com.kanke.search.query.Bucket;
 import com.kanke.search.query.Group;
 import com.kanke.search.query.GroupResponse;
+import com.kanke.search.query.GroupType;
 import com.kanke.search.query.Pageable;
 import com.kanke.search.util.DocumentUtil;
 
@@ -128,23 +130,46 @@ public class StoreTemplate {
 
 		IndexReader indexReader = this.getIndexReader(index);
 		GroupingSearch groupingSearch = new GroupingSearch(group.getGroupSelector());
-
+		groupingSearch.setGroupSort(new Sort( group.getSortField()));
+		
+		GroupResponse groupResponse = new GroupResponse();
+		
+		
+		List<Bucket> list = new ArrayList<>();
+		groupResponse.setBuckets(list);
+		
 		try {
-
-			TopGroups<BytesRef> topGroups = groupingSearch.search(new IndexSearcher(indexReader), query,
-					pageable.getOffset(), pageable.getLimit());
-
+			
+			Map<GroupType,String> groupTypeMap =  group.getGroupTypeMap();
+			
+			for(String  name:groupTypeMap.values()) {
+				groupResponse.addAmountName(name);
+			}
+			
+			
+			TopGroups<BytesRef> topGroups = groupingSearch.search(new IndexSearcher(indexReader), query,pageable.getOffset(), pageable.getLimit());
 			GroupDocs<BytesRef>[] groupsDocs = topGroups.groups;
-
 			for (GroupDocs<BytesRef> groupDoc : groupsDocs) {
-				System.out.println(groupDoc.groupValue.utf8ToString());
-				System.out.println(groupDoc.totalHits.value);
+				Bucket bucket = new Bucket();
+				bucket.setKey(groupDoc.groupValue.utf8ToString());
+				bucket.setDoc_count(groupDoc.totalHits.value);
+				
+				
+				
+				for(GroupType  groupType:groupTypeMap.keySet()) {
+					if(groupType == GroupType.COUNT) {
+						bucket.addAmounts(groupDoc.totalHits.value);
+					}
+				}
+				
+				
+				list.add(bucket);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		return new GroupResponse();
+		return groupResponse;
 	}
 
 	public <T> void write(List<T> list) throws IOException {

@@ -62,6 +62,9 @@ public class StoreFileld {
 		if (type == Integer.class) {
 			return SortField.Type.INT;
 		}
+		if (type == Float.class) {
+			return SortField.Type.FLOAT;
+		}
 		return SortField.Type.DOC;
 	}
 

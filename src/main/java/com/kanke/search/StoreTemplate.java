@@ -15,27 +15,23 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.grouping.GroupDocs;
-import org.apache.lucene.search.grouping.GroupingSearch;
-import org.apache.lucene.search.grouping.TopGroups;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.BytesRef;
 
 import com.kanke.search.annotation.StoreIndex;
 import com.kanke.search.entry.StoreFileld;
 import com.kanke.search.entry.StoreFileldIndex;
 import com.kanke.search.entry.StoreFilelds;
-import com.kanke.search.query.Bucket;
 import com.kanke.search.query.Group;
 import com.kanke.search.query.GroupResponse;
-import com.kanke.search.query.GroupType;
 import com.kanke.search.query.Pageable;
+import com.kanke.search.query.collector.TermCollector;
 import com.kanke.search.util.DocumentUtil;
 
 public class StoreTemplate {
@@ -126,48 +122,18 @@ public class StoreTemplate {
 
 	}
 
-	public GroupResponse group(String index, Group group, Query query, Pageable pageable) {
-
+	public GroupResponse group(String index, Group group, Query query, Pageable pageable) throws IOException {
+		
+		
+		
 		IndexReader indexReader = this.getIndexReader(index);
-		GroupingSearch groupingSearch = new GroupingSearch(group.getGroupSelector());
-		groupingSearch.setGroupSort(new Sort( group.getSortField()));
+		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+		TermCollector  termCollector  = group.getTermCollector();
+		indexSearcher.search(query,termCollector);
 		
-		GroupResponse groupResponse = new GroupResponse();
 		
 		
-		List<Bucket> list = new ArrayList<>();
-		groupResponse.setBuckets(list);
-		
-		try {
-			
-			Map<GroupType,String> groupTypeMap =  group.getGroupTypeMap();
-			
-			for(String  name:groupTypeMap.values()) {
-				groupResponse.addAmountName(name);
-			}
-			
-			
-			TopGroups<BytesRef> topGroups = groupingSearch.search(new IndexSearcher(indexReader), query,pageable.getOffset(), pageable.getLimit());
-			GroupDocs<BytesRef>[] groupsDocs = topGroups.groups;
-			for (GroupDocs<BytesRef> groupDoc : groupsDocs) {
-				Bucket bucket = new Bucket();
-				bucket.setKey(groupDoc.groupValue.utf8ToString());
-				bucket.setDoc_count(groupDoc.totalHits.value);
-				
-				
-				
-				for(GroupType  groupType:groupTypeMap.keySet()) {
-					if(groupType == GroupType.COUNT) {
-						bucket.addAmounts(groupDoc.totalHits.value);
-					}
-				}
-				
-				
-				list.add(bucket);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		GroupResponse groupResponse = new GroupResponse(termCollector);
 
 		return groupResponse;
 	}
@@ -196,6 +162,16 @@ public class StoreTemplate {
 				new Sort(new SortField(storeFileld.getStoreName(), storeFileld.getSortType(), sort.isReverse())), top,
 				storeFilelds);
 
+	}
+	public <T> List<T> search(String index, Query query,Collector collector ,int top) throws IOException{
+		IndexReader indexReader = this.getIndexReader(index);
+		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+		indexSearcher.search(query,collector);
+		
+		
+		
+		return null;
+		
 	}
 
 	private <T> List<T> search0(String index, Query query, Sort sort, int top, StoreFilelds storeFilelds) {

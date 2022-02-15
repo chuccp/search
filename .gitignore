@@ -26,3 +26,5 @@ hs_err_pid*
 .settings/org.eclipse.core.resources.prefs
 *.prefs
 .project
+.svn/entries
+.svn/

@@ -3,9 +3,21 @@ package com.kanke.search.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.kanke.search.query.collector.TermCollector;
+
 public class GroupResponse {
 	
+	private TermCollector  termCollector;
 	
+	
+	
+	
+	public GroupResponse(TermCollector termCollector) {
+		this.termCollector = termCollector;
+	}
+
+
+
 	private List<String> amountName = new ArrayList<String>();
 	
 	

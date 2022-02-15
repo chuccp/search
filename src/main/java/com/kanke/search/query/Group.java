@@ -1,27 +1,25 @@
 package com.kanke.search.query;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.SortField.Type;
-import org.apache.lucene.search.grouping.GroupSelector;
-import org.apache.lucene.search.grouping.TermGroupSelector;
+
+import com.kanke.search.query.collector.TermCollector;
+
 
 public class Group {
 
 	Query query;
 
-	private GroupSelector<?> groupSelector;
-
-	public GroupSelector<?> getGroupSelector() {
-		return groupSelector;
-	}
-
-	public void setGroupSelector(GroupSelector<?> groupSelector) {
-		this.groupSelector = groupSelector;
+	private TermCollector termCollector;
+	
+	
+	
+	public TermCollector getTermCollector() {
+		return termCollector;
 	}
 
 	private int offset;
@@ -78,10 +76,9 @@ public class Group {
 		return this;
 	}
 
-	public static Group term(String storeName) {
+	public static Group term(String ...storeName) {
 		Group group = new Group();
-		TermGroupSelector termGroupSelector = new TermGroupSelector(storeName);
-		group.groupSelector = termGroupSelector;
+		group.termCollector = new TermCollector(storeName);
 		return group;
 	}
 

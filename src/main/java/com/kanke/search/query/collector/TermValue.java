@@ -30,6 +30,10 @@ public class TermValue {
 	public BytesRef toBytesRef() {
 		return bytesRefBuilder.toBytesRef();
 	}
+	
+	public int getSize() {
+		return bytesRefArray.size();
+	}
 
 	public BytesRef get(int index) {
 		BytesRefBuilder spare = new BytesRefBuilder();

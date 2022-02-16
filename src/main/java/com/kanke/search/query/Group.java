@@ -61,19 +61,23 @@ public class Group {
 		return groupTypeMap;
 	}
 
-	private SortField sortField = new SortField(null, Type.DOC, true);
+	private boolean reverse = false;
 
-	public SortField getSortField() {
-		return sortField;
-	}
 
 	public Group desc() {
+		reverse = true;
 		return this;
 	}
 
 	public Group asc() {
-		sortField = new SortField(null, Type.DOC, false);
+		reverse = false;
 		return this;
+	}
+
+	
+	
+	public boolean isReverse() {
+		return reverse;
 	}
 
 	public static Group term(String ...storeName) {

@@ -1,51 +1,29 @@
 package com.kanke.search.query;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.kanke.search.query.collector.GroupValue;
 
 public class Bucket {
+	
+	public Bucket(GroupValue groupValue) {
+		this.groupValue = groupValue;
+	}
 
-	private Object key;
-	
-	private Long doc_count;
-	
-	private List<Long> amounts = new ArrayList<Long>();
-	
-	
+	private GroupValue groupValue;
+
 	public Long getAmouts(String name) {
-		return amounts.get(0);
-	}
-	
-	
-	public Object get() {
-		return amounts;
+		return groupValue.getCount();
 	}
 
-	public Object getKey() {
-		return key;
-	}
-
-	public void setKey(Object key) {
-		this.key = key;
+	public String get(int index) {
+		return groupValue.getTermValue().get(index).utf8ToString();
 	}
 
 	public Long getDoc_count() {
-		return doc_count;
+		return groupValue.getCount();
 	}
 
-	public void setDoc_count(Long doc_count) {
-		this.doc_count = doc_count;
+	public String getKey() {
+		return get(0);
 	}
-	
-	
-	public List<Long> getAmounts() {
-		return amounts;
-	}
-	
-	
 
-	public void addAmounts(Long value) {
-		this.amounts.add(value);
-	}
-	
 }

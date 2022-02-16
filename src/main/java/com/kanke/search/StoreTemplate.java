@@ -35,6 +35,8 @@ import com.kanke.search.query.collector.TermCollector;
 import com.kanke.search.util.DocumentUtil;
 
 public class StoreTemplate {
+	
+
 
 	private Path path;
 	private Map<String, IndexWriter> indexWriterMap = new LinkedHashMap<>();
@@ -122,20 +124,17 @@ public class StoreTemplate {
 
 	}
 
-	public GroupResponse group(String index, Group group, Query query, Pageable pageable) throws IOException {
-		
-		
-		
+	public GroupResponse group(String index, Group group, Query query, Pageable pageable) {
 		IndexReader indexReader = this.getIndexReader(index);
 		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 		TermCollector  termCollector  = group.getTermCollector();
-		indexSearcher.search(query,termCollector);
-		
-		
-		
-		GroupResponse groupResponse = new GroupResponse(termCollector);
-
-		return groupResponse;
+		try {
+			indexSearcher.search(query,termCollector);
+			GroupResponse groupResponse = new GroupResponse(termCollector,group.isReverse(), pageable);
+			return groupResponse;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public <T> void write(List<T> list) throws IOException {

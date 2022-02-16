@@ -52,13 +52,20 @@ public class GroupResponse {
 			Collections.sort(list, (v1,v2)->NumberUtils.compare(v1.getCount(), v2.getCount()));
 		}
 		
-		list = list.subList(pageable.getOffset(), pageable.getLimit());
+		int num = list.size();
+		if(num>pageable.getOffset()) {
+			int rSize =  num - pageable.getOffset();
+			if(pageable.getLimit()>rSize) {
+				pageable.setLimit(rSize);
+			}
+			list = list.subList(pageable.getOffset(), pageable.getLimit());
+			list.forEach((v)->{
+				Bucket bucket = new Bucket(v);
+				buckets.add(bucket);
+			});
+		}
 		
-		
-		list.forEach((v)->{
-			Bucket bucket = new Bucket(v);
-			buckets.add(bucket);
-		});
+	
 		
 	}
 	

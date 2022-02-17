@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -27,11 +28,14 @@ import org.apache.lucene.store.FSDirectory;
 import com.kanke.search.annotation.StoreIndex;
 import com.kanke.search.entry.StoreFileld;
 import com.kanke.search.entry.StoreFileldIndex;
+import com.kanke.search.entry.StoreFileldIndexs;
 import com.kanke.search.entry.StoreFilelds;
 import com.kanke.search.query.Group;
+import com.kanke.search.query.GroupBuilder;
 import com.kanke.search.query.GroupResponse;
 import com.kanke.search.query.Pageable;
-import com.kanke.search.query.collector.TermCollector;
+import com.kanke.search.query.QueryUtils;
+import com.kanke.search.query.collector.AllGroupCollector;
 import com.kanke.search.util.DocumentUtil;
 
 public class StoreTemplate {
@@ -61,7 +65,7 @@ public class StoreTemplate {
 			sfi.setIndexName(storeFilelds.getStoreIndex());
 			sfi.setFiledName(sf.getFieldName());
 			sfi.setStoreName(sf.getStoreName());
-			sfi.setGenericType(sf.getField().toGenericString());
+			sfi.setGenericType(sf.getField().getGenericType().getTypeName());
 			sfi.setSort(sf.isSort());
 			sfi.setId(sfi.getIndexName() + "_" + sfi.getStoreName());
 			sfi.setSortName(sf.getStoreName());
@@ -84,6 +88,26 @@ public class StoreTemplate {
 
 		}
 	}
+	
+	
+	private StoreFileldIndexs getStoreFilelds(String index) {
+		StoreFileldIndexs storeFileldIndexs = StoreFileldIndexs.CreateStoreFileldIndexs();
+		for( StoreFileldIndex sfi:storeFileldIndexMap.values()) {
+			if(StringUtils.equals(index, sfi.getIndexName())) {
+				storeFileldIndexs.addStoreFileldIndex(sfi);
+			}
+		}
+		if(storeFileldIndexs.isEmpty()) {
+			Query q1 = QueryUtils.CreateTermQuery("indexName", index);
+			List<StoreFileldIndex>  list = this.search("StoreFileldIndex", q1, 1000, StoreFileldIndex.class);
+			for( StoreFileldIndex sfi:list) {
+				storeFileldIndexs.addStoreFileldIndex(sfi);
+			}
+		}
+		return storeFileldIndexs;
+	}
+	
+	
 
 	private <T> void writeOrUpdate0(StoreFilelds storeFilelds, List<T> list) throws IOException {
 		IndexWriter indexWriter = this.getIndexWriter(storeFilelds.getStoreIndex());
@@ -127,15 +151,34 @@ public class StoreTemplate {
 	public GroupResponse group(String index, Group group, Query query, Pageable pageable) {
 		IndexReader indexReader = this.getIndexReader(index);
 		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-		TermCollector  termCollector  = group.getTermCollector();
+		AllGroupCollector  allGroupCollector  = group.getAllGroupCollector();
+		
+		
+		
+		
 		try {
-			indexSearcher.search(query,termCollector);
-			GroupResponse groupResponse = new GroupResponse(termCollector,group.isReverse(), pageable);
+			indexSearcher.search(query,allGroupCollector);
+			GroupResponse groupResponse = new GroupResponse(allGroupCollector,group.isReverse(), pageable);
 			return groupResponse;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	
+	public GroupResponse group(String index, GroupBuilder groupBuilder, Query query, Pageable pageable) {
+		IndexReader indexReader = this.getIndexReader(index);
+		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+		AllGroupCollector  termCollector  = new AllGroupCollector(groupBuilder,this.getStoreFilelds(index));
+		try {
+			indexSearcher.search(query,termCollector);
+			GroupResponse groupResponse = new GroupResponse(termCollector,pageable);
+			return groupResponse;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
 
 	public <T> void write(List<T> list) throws IOException {
 		if (list != null && !list.isEmpty()) {

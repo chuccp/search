@@ -10,20 +10,21 @@ public class Bucket {
 
 	private GroupValue groupValue;
 
-	public Long getAmouts(String name) {
-		return groupValue.getCount();
+//	public Long getAmouts(String name) {
+//		return groupValue.getCount();
+//	}
+//
+//
+//
+//	public Long getDoc_count() {
+//		return groupValue.getCount();
+//	}
+
+
+
+	public String getFieldValue(String name) {
+		return null;
 	}
 
-	public String get(int index) {
-		return groupValue.getTermValue().get(index).utf8ToString();
-	}
-
-	public Long getDoc_count() {
-		return groupValue.getCount();
-	}
-
-	public String getKey() {
-		return get(0);
-	}
 
 }

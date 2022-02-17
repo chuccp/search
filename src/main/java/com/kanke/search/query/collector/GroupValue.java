@@ -1,17 +1,15 @@
 package com.kanke.search.query.collector;
 
 public class GroupValue {
-	
-	
-	
-	public GroupValue(TermValue termValue, long count) {
+
+	public GroupValue(TermValue termValue) {
 		this.termValue = termValue;
-		this.count = count;
+		this.value = 0;
 	}
 
-	private TermValue  termValue;
-	
-	private long count;
+	private TermValue termValue;
+
+	private long value;
 
 	public TermValue getTermValue() {
 		return termValue;
@@ -21,16 +19,20 @@ public class GroupValue {
 		this.termValue = termValue;
 	}
 
-	public long getCount() {
-		return count;
+	public long getValue() {
+		return value;
 	}
 
-	public void setCount(long count) {
-		this.count = count;
+	public void setValue(long value) {
+		this.value = value;
 	}
-	
-	public void add() {
-		this.count++;
+
+	public void count() {
+		this.value++;
 	}
-	
+
+	public void sum(long num) {
+		this.value = this.value + num;
+	}
+
 }

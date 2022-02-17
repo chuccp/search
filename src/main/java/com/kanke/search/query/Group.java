@@ -4,22 +4,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.SortField.Type;
 
-import com.kanke.search.query.collector.TermCollector;
-
+import com.kanke.search.query.collector.AllGroupCollector;
+import com.kanke.search.type.GroupType;
 
 public class Group {
 
 	Query query;
 
-	private TermCollector termCollector;
-	
-	
-	
-	public TermCollector getTermCollector() {
-		return termCollector;
+	private AllGroupCollector allGroupCollector;
+
+	public AllGroupCollector getAllGroupCollector() {
+		return allGroupCollector;
 	}
 
 	private int offset;
@@ -63,7 +59,6 @@ public class Group {
 
 	private boolean reverse = false;
 
-
 	public Group desc() {
 		reverse = true;
 		return this;
@@ -74,15 +69,12 @@ public class Group {
 		return this;
 	}
 
-	
-	
 	public boolean isReverse() {
 		return reverse;
 	}
 
-	public static Group term(String ...storeName) {
+	public static Group term(String... storeName) {
 		Group group = new Group();
-		group.termCollector = new TermCollector(storeName);
 		return group;
 	}
 

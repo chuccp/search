@@ -26,6 +26,10 @@ public class GroupBuilder {
 		return this;
 	}
 
+	public String getFieldName() {
+		return fieldName;
+	}
+
 	private boolean reverse = false;
 
 	public GroupBuilder desc() {
@@ -75,8 +79,10 @@ public class GroupBuilder {
 
 	private List<GroupBuilder> groupBuilderList = new ArrayList<>();
 
-	public GroupBuilder addGroupBuilder(GroupBuilder groupBuilder) {
-		groupBuilderList.add(groupBuilder);
+	public GroupBuilder addGroupBuilder(GroupBuilder ...groupBuilders) {
+		for(GroupBuilder gb:groupBuilders) {
+			groupBuilderList.add(gb);
+		}
 		return this;
 	}
 

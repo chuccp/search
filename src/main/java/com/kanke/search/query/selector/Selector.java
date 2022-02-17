@@ -1,11 +1,19 @@
 package com.kanke.search.query.selector;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.apache.lucene.search.SortField;
 
+import com.kanke.search.query.collector.GroupValue;
 import com.kanke.search.query.collector.TermValue;
 import com.kanke.search.type.GroupType;
 
 public abstract class Selector {
+	
+	protected Map<Integer, GroupValue> mapValue = new LinkedHashMap<>();
+	
+	private boolean reverse = false;
 	
 	private SortField.Type sortFieldType;
 	
@@ -36,6 +44,18 @@ public abstract class Selector {
 	}
 	public String getStoreName() {
 		return this.storeNames[0];
+	}
+	public GroupValue get(Integer groupId ) {
+		return mapValue.get(groupId);
+	}
+	
+
+	public boolean isReverse() {
+		return reverse;
+	}
+
+	public void setReverse(boolean reverse) {
+		this.reverse = reverse;
 	}
 
 }

@@ -1,6 +1,5 @@
 package com.kanke.search.query.collector;
 
-import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.BytesRefArray;
 import org.apache.lucene.util.BytesRefBuilder;
@@ -8,9 +7,6 @@ import org.apache.lucene.util.Counter;
 import org.apache.lucene.util.NumericUtils;
 
 public class TermValue {
-	
-	
-	private IndexableField value; 
 
 	private BytesRefBuilder bytesRefBuilder;
 
@@ -32,7 +28,7 @@ public class TermValue {
 
 	public void addValue(long num) {
 		byte[] data = new byte[8];
-		NumericUtils.longToSortableBytes(num, data, getSize());
+		NumericUtils.longToSortableBytes(num, data, 0);
 		this.addValue(data);
 	}
 

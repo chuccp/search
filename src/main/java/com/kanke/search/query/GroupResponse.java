@@ -7,88 +7,92 @@ import java.util.Map;
 
 import org.apache.commons.lang3.math.NumberUtils;
 
-import com.kanke.search.query.collector.GroupValue;
 import com.kanke.search.query.collector.AllGroupCollector;
+import com.kanke.search.query.collector.GroupValue;
+import com.kanke.search.query.collector.TermValue;
+import com.kanke.search.query.selector.TermSelector;
 
 public class GroupResponse {
-	
-	private AllGroupCollector  termCollector;
-	
-	
-	private boolean reverse = false;
-	
+
+	private AllGroupCollector allGroupCollector;
+
+
 	private Pageable pageable;
-	
-	
-	public GroupResponse(AllGroupCollector termCollector,Pageable pageable) {
-		this.termCollector = termCollector;
+
+	public GroupResponse(AllGroupCollector allGroupCollector, Pageable pageable) {
+		this.allGroupCollector = allGroupCollector;
 		this.pageable = pageable;
 		this.readValue();
-		
-	}
 
-	public GroupResponse(AllGroupCollector termCollector, boolean reverse, Pageable pageable) {
-		this.termCollector = termCollector;
-		this.reverse = reverse;
-		this.pageable = pageable;
-		this.readValue();
 	}
-
 
 	private void readValue() {
-//		Map<Integer, GroupValue> mapValue = termCollector.getGroupValue();
-//		
-//		List<GroupValue>   list = new ArrayList<>(mapValue.values());
-//		
-//		
-//		
-//		if(this.reverse) {
-//			Collections.sort(list, (v1,v2)->NumberUtils.compare(v2.getCount(), v1.getCount()));
-//		}else {
-//			Collections.sort(list, (v1,v2)->NumberUtils.compare(v1.getCount(), v2.getCount()));
-//		}
-//		
-//		int num = list.size();
-//		if(num>pageable.getOffset()) {
-//			int rSize =  num - pageable.getOffset();
-//			if(pageable.getLimit()>rSize) {
-//				pageable.setLimit(rSize);
-//			}
-//			list = list.subList(pageable.getOffset(), pageable.getLimit());
-//			list.forEach((v)->{
-//				Bucket bucket = new Bucket(v);
-//				buckets.add(bucket);
-//			});
-//		}
+
+		TermSelector termSelector = this.allGroupCollector.getTermSelector();
+		
+		
+		Map<Integer, GroupValue> mapValue = termSelector.getMapValue();
+		List<Integer> list = new ArrayList<>(mapValue.keySet());
+		if (termSelector.isReverse()) {
+			Collections.sort(list,
+					(v1, v2) -> NumberUtils.compare(mapValue.get(v1).getValue(), mapValue.get(v2).getValue()));
+		} else {
+			Collections.sort(list,
+					(v1, v2) -> NumberUtils.compare(mapValue.get(v2).getValue(), mapValue.get(v1).getValue()));
+		}
+
+		int num = list.size();
+		if (num > pageable.getOffset()) {
+			int rSize = num - pageable.getOffset();
+			if (pageable.getLimit() > rSize) {
+				pageable.setLimit(rSize);
+			}
+			list = list.subList(pageable.getOffset(), pageable.getLimit());
+			list.forEach((v) -> {
+				Bucket bucket = new Bucket(v) {
+
+					@Override
+					public String getStoreName(int num) {
+						return termSelector.getStoreNames()[num];
+					}
+
+					@Override
+					public TermValue getFieldValue(String name) {
+						return GroupResponse.this.getTermValue(this.getGroupId(), name);
+					}};
+				buckets.add(bucket);
+			});
+		}
+	}
+
+	private TermValue getTermValue(int groupId,String groupName) {
+		
+		this.allGroupCollector.getSelectorMap().get(groupName);
+		
+		
+		return null;
+		
 	}
 	
-
+	
 	private List<String> amountName = new ArrayList<String>();
-	
-	
-	private List<Bucket> buckets = new ArrayList<>();
 
+	private List<Bucket> buckets = new ArrayList<>();
 
 	public List<String> getAmountName() {
 		return amountName;
 	}
 
-
 	public void addAmountName(String amountName) {
 		this.amountName.add(amountName);
 	}
-
 
 	public List<Bucket> getBuckets() {
 		return buckets;
 	}
 
-
 	public void setAmountName(List<String> amountName) {
 		this.amountName = amountName;
 	}
-	
-	
-	
 
 }

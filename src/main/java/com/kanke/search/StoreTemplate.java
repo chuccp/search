@@ -152,13 +152,9 @@ public class StoreTemplate {
 		IndexReader indexReader = this.getIndexReader(index);
 		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 		AllGroupCollector  allGroupCollector  = group.getAllGroupCollector();
-		
-		
-		
-		
 		try {
 			indexSearcher.search(query,allGroupCollector);
-			GroupResponse groupResponse = new GroupResponse(allGroupCollector,group.isReverse(), pageable);
+			GroupResponse groupResponse = new GroupResponse(allGroupCollector, pageable);
 			return groupResponse;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -169,10 +165,10 @@ public class StoreTemplate {
 	public GroupResponse group(String index, GroupBuilder groupBuilder, Query query, Pageable pageable) {
 		IndexReader indexReader = this.getIndexReader(index);
 		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-		AllGroupCollector  termCollector  = new AllGroupCollector(groupBuilder,this.getStoreFilelds(index));
+		AllGroupCollector  allGroupCollector  = new AllGroupCollector(groupBuilder,this.getStoreFilelds(index));
 		try {
-			indexSearcher.search(query,termCollector);
-			GroupResponse groupResponse = new GroupResponse(termCollector,pageable);
+			indexSearcher.search(query,allGroupCollector);
+			GroupResponse groupResponse = new GroupResponse(allGroupCollector,pageable);
 			return groupResponse;
 		} catch (IOException e) {
 			throw new RuntimeException(e);

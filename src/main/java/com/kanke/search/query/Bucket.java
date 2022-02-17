@@ -1,30 +1,27 @@
 package com.kanke.search.query;
 
-import com.kanke.search.query.collector.GroupValue;
+import com.kanke.search.query.collector.TermValue;
 
-public class Bucket {
+public abstract class Bucket {
 	
-	public Bucket(GroupValue groupValue) {
-		this.groupValue = groupValue;
+	private int groupId;
+	
+	
+	public Bucket(int groupId) {
+		this.groupId = groupId;
 	}
 
-	private GroupValue groupValue;
 
-//	public Long getAmouts(String name) {
-//		return groupValue.getCount();
-//	}
-//
-//
-//
-//	public Long getDoc_count() {
-//		return groupValue.getCount();
-//	}
-
-
-
-	public String getFieldValue(String name) {
-		return null;
+	public int getGroupId() {
+		return groupId;
 	}
+
+
+	public abstract String getStoreName(int num);
+
+
+
+	public abstract TermValue getFieldValue(String name);
 
 
 }

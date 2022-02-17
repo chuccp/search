@@ -1,8 +1,9 @@
 package com.kanke.search.query.collector;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.LeafReaderContext;
@@ -26,10 +27,12 @@ public class AllGroupCollector extends SimpleCollector {
 		this.groupBuilder = groupBuilder;
 		this.storeFileldIndexs = storeFileldIndexs;
 		this.termSelector = new TermSelector(groupBuilder.getStoreNames());
+		this.termSelector.setReverse(groupBuilder.isReverse());
 		List<GroupBuilder> groupBuilders = this.groupBuilder.getGroupBuilderList();
 		for (GroupBuilder group : groupBuilders) {
 			Selector selector = Selector.create(group.getGroupType(),storeFileldIndexs.getSortFieldType(group.getStoreName()), group.getStoreNames());
-			selectorList.add(selector);
+			selector.setReverse(group.isReverse());
+			selectorMap.put(group.getFieldName(),selector);
 		}
 	}
 
@@ -37,7 +40,7 @@ public class AllGroupCollector extends SimpleCollector {
 
 	private TermSelector termSelector;
 
-	private List<Selector> selectorList = new ArrayList<Selector>();
+	private Map<String,Selector> selectorMap = new LinkedHashMap<>();
 
 	private BytesRefHash bytesRefHash = new BytesRefHash();
 
@@ -56,10 +59,19 @@ public class AllGroupCollector extends SimpleCollector {
 			groupId = bytesRefHash.add(bytesRef);
 		}
 		termSelector.collect(groupId, termValue);
-		for (Selector selector : selectorList) {
+		for (Selector selector : selectorMap.values()) {
 			TermValue tv = groupDocValues.getTermValue(selector.getStoreName());
 			selector.collect(groupId, tv);
 		}
+	}
+	
+	
+	public TermSelector getTermSelector() {
+		return termSelector;
+	}
+
+	public Map<String, Selector> getSelectorMap() {
+		return selectorMap;
 	}
 
 	@Override

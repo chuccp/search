@@ -11,12 +11,13 @@ import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.NumericDocValues;
 import org.apache.lucene.index.SortedDocValues;
 import org.apache.lucene.index.SortedNumericDocValues;
+import org.apache.lucene.util.BytesRef;
 
 public class GroupDocValues {
 
 	private List<SortedDocValues> sortedDocValuesList0 = new ArrayList<SortedDocValues>();
 
-	private List<SortedNumericDocValues> sortedNumericDocValuesList0 = new ArrayList<SortedNumericDocValues>();
+	private List<NumericDocValues> sortedNumericDocValuesList0 = new ArrayList<NumericDocValues>();
 
 	private List<SortedDocValues> sortedDocValuesList1 = new ArrayList<SortedDocValues>();
 
@@ -34,7 +35,7 @@ public class GroupDocValues {
 
 	public void addSortNumeric0(LeafReaderContext context, String storeName) throws IOException {
 		
-			sortedNumericDocValuesList0.add(DocValues.getSortedNumeric(context.reader(), storeName));
+			sortedNumericDocValuesList0.add(DocValues.getNumeric(context.reader(), storeName));
 		
 	}
 
@@ -67,9 +68,10 @@ public class GroupDocValues {
 	public TermValue getTermValue() throws IOException {
 		TermValue termValue = new TermValue();
 		for (SortedDocValues sortedDocValues : sortedDocValuesList0) {
+				BytesRef bytesRef  = sortedDocValues.binaryValue();
 				termValue.addValue(sortedDocValues.binaryValue());
 		}
-		for (NumericDocValues sortedDocValues : numericDocValues1) {
+		for (NumericDocValues sortedDocValues : sortedNumericDocValuesList0) {
 				termValue.addValue(sortedDocValues.longValue());
 		}
 		return termValue;
@@ -107,7 +109,7 @@ public class GroupDocValues {
 			}
 
 		}
-		for (SortedNumericDocValues sortedDocValues : sortedNumericDocValuesList0) {
+		for (NumericDocValues sortedDocValues : sortedNumericDocValuesList0) {
 			if (doc > sortedDocValues.docID()) {
 					sortedDocValues.advanceExact(doc);
 			}

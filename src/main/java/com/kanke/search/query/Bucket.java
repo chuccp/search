@@ -1,5 +1,6 @@
 package com.kanke.search.query;
 
+import com.kanke.search.query.collector.GroupValue;
 import com.kanke.search.query.collector.TermValue;
 
 public abstract class Bucket {
@@ -21,7 +22,17 @@ public abstract class Bucket {
 
 
 
-	public abstract TermValue getFieldValue(String name);
+	public abstract GroupValue getFieldValue(String name);
+	
+	
+	
+	public abstract TermValue getTermValue();
+
+
+	public  Long getAmouts(String name) {
+		return this.getFieldValue(name).getValue();
+		
+	}
 
 
 }

@@ -46,4 +46,12 @@ public class TermValue {
 
 	}
 
+	public String toString(int num) {
+		return this.get(num).utf8ToString();
+	}
+	@Override
+	public String toString() {
+		return this.get(0).utf8ToString();
+	}
+
 }

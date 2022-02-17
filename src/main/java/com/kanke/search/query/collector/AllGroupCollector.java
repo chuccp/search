@@ -28,11 +28,15 @@ public class AllGroupCollector extends SimpleCollector {
 		this.storeFileldIndexs = storeFileldIndexs;
 		this.termSelector = new TermSelector(groupBuilder.getStoreNames());
 		this.termSelector.setReverse(groupBuilder.isReverse());
+		
+		allSelectorMap.put(groupBuilder.getFieldName(), termSelector);
+		
 		List<GroupBuilder> groupBuilders = this.groupBuilder.getGroupBuilderList();
 		for (GroupBuilder group : groupBuilders) {
 			Selector selector = Selector.create(group.getGroupType(),storeFileldIndexs.getSortFieldType(group.getStoreName()), group.getStoreNames());
 			selector.setReverse(group.isReverse());
 			selectorMap.put(group.getFieldName(),selector);
+			allSelectorMap.put(group.getFieldName(), selector);
 		}
 	}
 
@@ -42,6 +46,8 @@ public class AllGroupCollector extends SimpleCollector {
 
 	private Map<String,Selector> selectorMap = new LinkedHashMap<>();
 
+	private Map<String,Selector> allSelectorMap = new LinkedHashMap<>();
+	
 	private BytesRefHash bytesRefHash = new BytesRefHash();
 
 	@Override
@@ -54,6 +60,7 @@ public class AllGroupCollector extends SimpleCollector {
 		groupDocValues.advanceExact(doc);
 		TermValue termValue = groupDocValues.getTermValue();
 		BytesRef bytesRef = termValue.toBytesRef();
+		
 		int groupId = bytesRefHash.find(bytesRef);
 		if (groupId < 0) {
 			groupId = bytesRefHash.add(bytesRef);
@@ -70,9 +77,14 @@ public class AllGroupCollector extends SimpleCollector {
 		return termSelector;
 	}
 
+	public Map<String, Selector> getAllSelectorMap() {
+		return allSelectorMap;
+	}
+	
 	public Map<String, Selector> getSelectorMap() {
 		return selectorMap;
 	}
+	
 
 	@Override
 	protected void doSetNextReader(LeafReaderContext context) throws IOException {

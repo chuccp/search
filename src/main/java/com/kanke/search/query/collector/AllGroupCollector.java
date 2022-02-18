@@ -36,6 +36,7 @@ public class AllGroupCollector extends SimpleCollector {
 		for (GroupBuilder group : groupBuilders) {
 			Selector selector = Selector.create(group.getGroupType(),storeFileldIndexs.getSortFieldType(group.getStoreName()), group.getStoreNames());
 			selector.setReverse(group.isReverse());
+			selector.setOrder(group.isOrder());
 			selectorMap.put(group.getFieldName(),selector);
 			allSelectorMap.put(group.getFieldName(), selector);
 		}

@@ -12,6 +12,7 @@ import com.kanke.search.query.collector.GroupValue;
 import com.kanke.search.query.collector.TermValue;
 import com.kanke.search.query.selector.Selector;
 import com.kanke.search.query.selector.TermSelector;
+import com.kanke.search.util.GroupUtils;
 
 public class GroupResponse {
 
@@ -26,7 +27,13 @@ public class GroupResponse {
 
 	}
 
+	
+	
 	private void readValue() {
+		
+		
+
+		
 
 		TermSelector termSelector = this.allGroupCollector.getTermSelector();
 
@@ -35,45 +42,66 @@ public class GroupResponse {
 		Map<String, Selector> allselector = this.allGroupCollector.getAllSelectorMap();
 
 		List<Selector> slist = new ArrayList<Selector>(allselector.values());
-		Collections.reverse(slist);
-		for (Selector selector : slist) {
-			if(selector.isOrder()) {
-				if (selector.isReverse()) {
-					Collections.sort(list,
-							(v1, v2) -> NumberUtils.compare(mapValue.get(v1).getValue(), mapValue.get(v2).getValue()));
-				} else {
-					Collections.sort(list,
-							(v1, v2) -> NumberUtils.compare(mapValue.get(v2).getValue(), mapValue.get(v1).getValue()));
+		
+		
+		
+		
+		
+		int num = list.size();
+		
+		
+		if (num > pageable.getOffset()) {
+			int fromIndex = pageable.getOffset();
+			int toIndex =  pageable.getOffset() +pageable.getLimit();
+			if (toIndex > num) {
+				toIndex = num;
+			}
+			
+			slist.removeIf(v->(!v.isOrder()));
+			if(!slist.isEmpty()) {
+				Selector firstSelector = slist.get(0);
+				if(slist.size()>1) {
+					OrderSub orderSub = GroupUtils.orderOptimiz(list, mapValue, firstSelector, fromIndex, toIndex);
+					list = orderSub.getUlist();
+					Collections.reverse(slist);
+					for (Selector selector : slist) {
+						if (selector.isReverse()) {
+							Collections.sort(list,(v1, v2) -> NumberUtils.compare(selector.get(v2).getValue(), selector.get(v1).getValue()));
+						} else {
+							Collections.sort(list,(v1, v2) -> NumberUtils.compare(selector.get(v1).getValue(), selector.get(v2).getValue()));
+						}
+					}
+					list = orderSub.getPageList();
+				}else {
+					if (firstSelector.isReverse()) {
+						Collections.sort(list,(v1, v2) -> NumberUtils.compare(firstSelector.get(v2).getValue(), firstSelector.get(v1).getValue()));
+					} else {
+						Collections.sort(list,(v1, v2) -> NumberUtils.compare(firstSelector.get(v1).getValue(), firstSelector.get(v2).getValue()));
+					}
+					list = list.subList(fromIndex,toIndex);
 				}
+			}else {
+				list = list.subList(fromIndex,toIndex);
 			}
 		}
-		int num = list.size();
-		if (num > pageable.getOffset()) {
-			int rSize = num - pageable.getOffset();
-			if (pageable.getLimit() > rSize) {
-				pageable.setLimit(rSize);
-			}
-			list = list.subList(pageable.getOffset(), pageable.getLimit());
-			for (Integer groupId : list) {
-				Bucket bucket = new Bucket(groupId) {
-					@Override
-					public String getStoreName(int num) {
-						return termSelector.getStoreNames()[num];
-					}
-
-					@Override
-					public GroupValue getFieldValue(String name) {
-						return GroupResponse.this.getTermValue(this.getGroupId(), name);
-					}
-
-					@Override
-					public TermValue getTermValue() {
-						return termSelector.getTermValue(this.getGroupId());
-					}
-				};
-				buckets.add(bucket);
-			}
-
+		for (Integer groupId : list) {
+			Bucket bucket = new Bucket(groupId) {
+				@Override
+				public String getStoreName(int num) {
+					return termSelector.getStoreNames()[num];
+				}
+				
+				@Override
+				public GroupValue getFieldValue(String name) {
+					return GroupResponse.this.getTermValue(this.getGroupId(), name);
+				}
+				
+				@Override
+				public TermValue getTermValue() {
+					return termSelector.getTermValue(this.getGroupId());
+				}
+			};
+			buckets.add(bucket);
 		}
 	}
 

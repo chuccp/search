@@ -14,9 +14,9 @@ public class GroupUtils {
 	
 	public static OrderSub orderOptimiz (List<Integer> list,Map<Integer, GroupValue> mapValue,Selector selector,int fromIndex, int toIndex) {
 		if (selector.isReverse()) {
-			Collections.sort(list,(v1, v2) -> NumberUtils.compare(mapValue.get(v1).getValue(), mapValue.get(v2).getValue()));
+			Collections.sort(list,(v1, v2) -> NumberUtils.compare(selector.get(v2).getValue(), selector.get(v1).getValue()));
 		} else {
-			Collections.sort(list,(v1, v2) -> NumberUtils.compare(mapValue.get(v2).getValue(), mapValue.get(v1).getValue()));
+			Collections.sort(list,(v1, v2) -> NumberUtils.compare(selector.get(v1).getValue(), selector.get(v2).getValue()));
 		}
 		
 		int fromIndex1 = fromIndex;

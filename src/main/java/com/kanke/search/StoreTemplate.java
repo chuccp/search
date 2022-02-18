@@ -32,6 +32,7 @@ import com.kanke.search.entry.StoreFileldIndexs;
 import com.kanke.search.entry.StoreFilelds;
 import com.kanke.search.query.Group;
 import com.kanke.search.query.GroupBuilder;
+import com.kanke.search.query.GroupBuilders;
 import com.kanke.search.query.GroupResponse;
 import com.kanke.search.query.Pageable;
 import com.kanke.search.query.QueryUtils;
@@ -151,7 +152,8 @@ public class StoreTemplate {
 	public GroupResponse group(String index, Group group, Query query, Pageable pageable) {
 		IndexReader indexReader = this.getIndexReader(index);
 		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-		AllGroupCollector  allGroupCollector  = group.getAllGroupCollector();
+		GroupBuilder  groupBuilder  = GroupBuilders.groupBy(group.getStoreNames()).fieldName(group.getAliasName()).reverse(group.isReverse());;
+		AllGroupCollector  allGroupCollector  =  new AllGroupCollector(groupBuilder,this.getStoreFilelds(index));
 		try {
 			indexSearcher.search(query,allGroupCollector);
 			GroupResponse groupResponse = new GroupResponse(allGroupCollector, pageable);

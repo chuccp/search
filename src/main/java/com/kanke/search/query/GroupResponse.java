@@ -37,14 +37,15 @@ public class GroupResponse {
 		List<Selector> slist = new ArrayList<Selector>(allselector.values());
 		Collections.reverse(slist);
 		for (Selector selector : slist) {
-			if (selector.isReverse()) {
-				Collections.sort(list,
-						(v1, v2) -> NumberUtils.compare(mapValue.get(v1).getValue(), mapValue.get(v2).getValue()));
-			} else {
-				Collections.sort(list,
-						(v1, v2) -> NumberUtils.compare(mapValue.get(v2).getValue(), mapValue.get(v1).getValue()));
+			if(selector.isOrder()) {
+				if (selector.isReverse()) {
+					Collections.sort(list,
+							(v1, v2) -> NumberUtils.compare(mapValue.get(v1).getValue(), mapValue.get(v2).getValue()));
+				} else {
+					Collections.sort(list,
+							(v1, v2) -> NumberUtils.compare(mapValue.get(v2).getValue(), mapValue.get(v1).getValue()));
+				}
 			}
-
 		}
 		int num = list.size();
 		if (num > pageable.getOffset()) {

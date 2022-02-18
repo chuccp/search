@@ -1,21 +1,21 @@
 package com.kanke.search.query;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.apache.lucene.search.Query;
-
-import com.kanke.search.query.collector.AllGroupCollector;
-import com.kanke.search.type.GroupType;
 
 public class Group {
 
 	Query query;
 
-	private AllGroupCollector allGroupCollector;
 
-	public AllGroupCollector getAllGroupCollector() {
-		return allGroupCollector;
+	private String[] storeNames;
+
+
+	public String[] getStoreNames() {
+		return storeNames;
+	}
+
+	public void setStoreNames(String[] storeNames) {
+		this.storeNames = storeNames;
 	}
 
 	private int offset;
@@ -46,15 +46,15 @@ public class Group {
 		this.limit = limit;
 	}
 
-	private Map<GroupType, String> groupTypeMap = new LinkedHashMap<>();
+	private String aliasName;
 
 	public Group count(String aliasName) {
-		groupTypeMap.put(GroupType.COUNT, aliasName);
+		this.aliasName = aliasName;
 		return this;
 	}
 
-	public Map<GroupType, String> getGroupTypeMap() {
-		return groupTypeMap;
+	public String getAliasName() {
+		return aliasName;
 	}
 
 	private boolean reverse = false;
@@ -72,9 +72,11 @@ public class Group {
 	public boolean isReverse() {
 		return reverse;
 	}
+	
 
 	public static Group term(String... storeName) {
 		Group group = new Group();
+		group.storeNames = storeName;
 		return group;
 	}
 

@@ -27,6 +27,7 @@ public class AllGroupCollector extends SimpleCollector {
 		this.groupBuilder = groupBuilder;
 		this.storeFileldIndexs = storeFileldIndexs;
 		this.termSelector = new TermSelector(groupBuilder.getStoreNames());
+		this.termSelector.setOrder(groupBuilder.isOrder());
 		this.termSelector.setReverse(groupBuilder.isReverse());
 		
 		allSelectorMap.put(groupBuilder.getFieldName(), termSelector);

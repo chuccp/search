@@ -34,11 +34,20 @@ public class GroupBuilder {
 
 	public GroupBuilder desc() {
 		reverse = true;
+		this.isOrder = true;
+		return this;
+	}
+
+	
+	
+	public GroupBuilder reverse(boolean reverse) {
+		this.reverse = reverse;
 		return this;
 	}
 
 	public GroupBuilder asc() {
 		reverse = false;
+		this.isOrder = true;
 		return this;
 	}
 	
@@ -88,6 +97,16 @@ public class GroupBuilder {
 
 	public List<GroupBuilder> getGroupBuilderList() {
 		return groupBuilderList;
+	}
+	
+	private boolean isOrder = false;
+
+	public boolean isOrder() {
+		return isOrder;
+	}
+
+	public void setOrder(boolean isOrder) {
+		this.isOrder = isOrder;
 	}
 	
 	

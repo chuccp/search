@@ -50,6 +50,20 @@ public abstract class Selector {
 	}
 	
 
+	
+	private boolean isOrder = false;
+	
+	
+	
+	
+	public boolean isOrder() {
+		return isOrder;
+	}
+
+	public void setOrder(boolean isOrder) {
+		this.isOrder = isOrder;
+	}
+
 	public boolean isReverse() {
 		return reverse;
 	}

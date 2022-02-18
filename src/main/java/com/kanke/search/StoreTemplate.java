@@ -99,7 +99,7 @@ public class StoreTemplate {
 			}
 		}
 		if(storeFileldIndexs.isEmpty()) {
-			Query q1 = QueryUtils.CreateTermQuery("indexName", index);
+			Query q1 = QueryUtils.createTermQuery("indexName", index);
 			List<StoreFileldIndex>  list = this.search("StoreFileldIndex", q1, 1000, StoreFileldIndex.class);
 			for( StoreFileldIndex sfi:list) {
 				storeFileldIndexs.addStoreFileldIndex(sfi);

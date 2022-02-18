@@ -18,7 +18,6 @@ public class GroupUtils {
 		} else {
 			Collections.sort(list,(v1, v2) -> NumberUtils.compare(selector.get(v1).getValue(), selector.get(v2).getValue()));
 		}
-		
 		int fromIndex1 = fromIndex;
 		int toIndex1 = toIndex;
 		if(fromIndex>0) {

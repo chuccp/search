@@ -67,6 +67,10 @@ public class QueryUtils {
 		return NumericDocValuesField.newSlowRangeQuery(field, lowerValue, upperValue);
 	}
 
+	public static Query createRangeQuery(String field, float lowerValue, float upperValue){
+		return NumericDocValuesField.newSlowRangeQuery(field, Float.floatToRawIntBits(lowerValue), Float.floatToRawIntBits(upperValue));
+	}
+
 	public static Query createRangeQuery(String field, Date lowerValue, Date upperValue) {
 		long  l = lowerValue.getTime();
 		long  u = upperValue.getTime();

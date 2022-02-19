@@ -10,6 +10,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 import com.kanke.search.query.collector.AllGroupCollector;
 import com.kanke.search.query.collector.GroupValue;
 import com.kanke.search.query.collector.TermValue;
+import com.kanke.search.query.group.GroupQuery;
+import com.kanke.search.query.group.GroupTermQuery;
 import com.kanke.search.query.selector.Selector;
 import com.kanke.search.query.selector.TermSelector;
 import com.kanke.search.util.GroupUtils;
@@ -17,46 +19,39 @@ import com.kanke.search.util.GroupUtils;
 public class GroupResponse {
 
 	private AllGroupCollector allGroupCollector;
+	
+	private GroupQuery groupQuery;
 
 	private Pageable pageable;
 
 	public GroupResponse(AllGroupCollector allGroupCollector, Pageable pageable) {
 		this.allGroupCollector = allGroupCollector;
 		this.pageable = pageable;
-		this.readValue();
 
 	}
-
 	
-	
-	private void readValue() {
-		
-		
+	public void setGroupQuery(GroupQuery groupQuery) {
+		this.groupQuery = groupQuery;
+	}
 
-		
-
+	public void exec() {
 		TermSelector termSelector = this.allGroupCollector.getTermSelector();
-
 		Map<Integer, GroupValue> mapValue = termSelector.getMapValue();
 		List<Integer> list = new ArrayList<>(mapValue.keySet());
 		Map<String, Selector> allselector = this.allGroupCollector.getAllSelectorMap();
-
+		if(groupQuery!=null) {
+			list.removeIf((v)->{
+				return !groupQuery.equals(v, allselector);
+			});
+		}
 		List<Selector> slist = new ArrayList<Selector>(allselector.values());
-		
-		
-		
-		
-		
 		int num = list.size();
-		
-		
 		if (num > pageable.getOffset()) {
 			int fromIndex = pageable.getOffset();
 			int toIndex =  pageable.getOffset() +pageable.getLimit();
 			if (toIndex > num) {
 				toIndex = num;
 			}
-			
 			slist.removeIf(v->(!v.isOrder()));
 			if(!slist.isEmpty()) {
 				Selector firstSelector = slist.get(0);

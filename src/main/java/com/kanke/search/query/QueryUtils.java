@@ -7,11 +7,16 @@ import java.util.List;
 
 import org.apache.lucene.document.NumericDocValuesField;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queries.function.FunctionQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.util.BytesRef;
+
+import com.kanke.search.query.function.DateDocValues;
+import com.kanke.search.query.function.DateFuncValueSource;
 
 public class QueryUtils {
 
@@ -33,6 +38,16 @@ public class QueryUtils {
 		return createTermsQuery(field, valueList.toArray(new String[] {}));
 
 	}
+	
+	public static Query createDateFuncQuery(String field,long value,DateDocValues func) {
+		DateFuncValueSource dateFuncValueSource = new DateFuncValueSource(field,func,value);
+		FunctionQuery functionQuery = new FunctionQuery(dateFuncValueSource);
+		return functionQuery;
+	}
+	
+	public static Query MatchAllDocsQuery() {
+		return new MatchAllDocsQuery();
+	}
 
 	public static Query createTermsQuery(String field, String... values) {
 		List<BytesRef> list = new ArrayList<>();
@@ -53,11 +68,18 @@ public class QueryUtils {
 	}
 
 	public static Query createRangeQuery(String field, Date lowerValue, Date upperValue) {
-		return NumericDocValuesField.newSlowRangeQuery(field, lowerValue.getTime(), upperValue.getTime());
+		long  l = lowerValue.getTime();
+		long  u = upperValue.getTime();
+		if(l>u) {
+			return NumericDocValuesField.newSlowRangeQuery(field, u, l);
+		}
+		return NumericDocValuesField.newSlowRangeQuery(field, l, u);
 	}
 
 	public static BuilderQuery createBoolQuery() {
 		return new BuilderQuery();
 	}
+	
+	
 
 }

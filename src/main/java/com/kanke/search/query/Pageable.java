@@ -34,7 +34,6 @@ public class Pageable {
 	}
 
 	public static Pageable page(int limit) {
-
 		return Pageable.page(0, limit);
 	}
 

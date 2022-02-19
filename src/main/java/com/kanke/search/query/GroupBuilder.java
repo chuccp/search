@@ -25,6 +25,7 @@ public class GroupBuilder {
 		this.fieldName = fieldName;
 		return this;
 	}
+	
 
 	public String getFieldName() {
 		return fieldName;
@@ -37,6 +38,7 @@ public class GroupBuilder {
 		this.isOrder = true;
 		return this;
 	}
+
 
 	
 	
@@ -104,12 +106,6 @@ public class GroupBuilder {
 	public boolean isOrder() {
 		return isOrder;
 	}
-
-	public void setOrder(boolean isOrder) {
-		this.isOrder = isOrder;
-	}
-	
-	
 	
 	
 }

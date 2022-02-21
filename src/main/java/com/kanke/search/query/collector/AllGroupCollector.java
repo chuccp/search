@@ -71,7 +71,7 @@ public class AllGroupCollector extends SimpleCollector {
 			groupId = bytesRefHash.add(bytesRef);
 		}
 		termSelector.collect(groupId, termValue);
-		termSelector.addDocId(groupId, termValue.getDocId()+this.docBase);
+		termSelector.addDocId(groupId, doc+this.docBase);
 		for (Selector selector : selectorMap.values()) {
 			TermValue tv = groupDocValues.getTermValue(selector.getStoreName());
 			selector.collect(groupId, tv);

@@ -12,7 +12,6 @@ public class TermValue {
 
 	private BytesRefArray bytesRefArray = new BytesRefArray(Counter.newCounter());
 	
-	private Integer docId;
 
 	public TermValue() {
 		bytesRefBuilder = new BytesRefBuilder();
@@ -58,12 +57,5 @@ public class TermValue {
 		return this.get(0).utf8ToString();
 	}
 
-	public Integer getDocId() {
-		return docId;
-	}
-
-	public void setDocId(Integer docId) {
-		this.docId = docId;
-	}
 
 }

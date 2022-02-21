@@ -69,11 +69,9 @@ public class GroupDocValues {
 		TermValue termValue = new TermValue();
 		for (SortedDocValues sortedDocValues : sortedDocValuesList0) {
 				termValue.addValue(sortedDocValues.binaryValue());
-				termValue.setDocId(sortedDocValues.docID());
 		}
 		for (NumericDocValues sortedDocValues : sortedNumericDocValuesList0) {
 				termValue.addValue(sortedDocValues.longValue());
-				termValue.setDocId(sortedDocValues.docID());
 		}
 		return termValue;
 	}

@@ -52,6 +52,8 @@ public class AllGroupCollector extends SimpleCollector {
 	private Map<String, Selector> allSelectorMap = new LinkedHashMap<>();
 
 	private BytesRefHash bytesRefHash = new BytesRefHash();
+	
+	private int docBase = 0;
 
 	@Override
 	public ScoreMode scoreMode() {
@@ -69,7 +71,7 @@ public class AllGroupCollector extends SimpleCollector {
 			groupId = bytesRefHash.add(bytesRef);
 		}
 		termSelector.collect(groupId, termValue);
-		termSelector.addDocId(groupId, termValue.getDocId());
+		termSelector.addDocId(groupId, termValue.getDocId()+this.docBase);
 		for (Selector selector : selectorMap.values()) {
 			TermValue tv = groupDocValues.getTermValue(selector.getStoreName());
 			selector.collect(groupId, tv);
@@ -91,6 +93,7 @@ public class AllGroupCollector extends SimpleCollector {
 	@Override
 	protected void doSetNextReader(LeafReaderContext context) throws IOException {
 		groupDocValues.clear();
+		this.docBase=context.docBase;
 		if (groupBuilder.getStoreNames().length > 0) {
 			for (String storeName : groupBuilder.getStoreNames()) {
 				DocValuesType docValuesType = storeFileldIndexs.getDocValuesType(storeName);

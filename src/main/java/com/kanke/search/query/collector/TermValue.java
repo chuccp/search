@@ -1,8 +1,5 @@
 package com.kanke.search.query.collector;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.BytesRefArray;
 import org.apache.lucene.util.BytesRefBuilder;

@@ -58,14 +58,18 @@ public class Group {
 	}
 
 	private boolean reverse = false;
+	
+	private boolean order = false;
 
 	public Group desc() {
 		reverse = true;
+		order = true;
 		return this;
 	}
 
 	public Group asc() {
 		reverse = false;
+		order = true;
 		return this;
 	}
 
@@ -73,6 +77,10 @@ public class Group {
 		return reverse;
 	}
 	
+
+	public boolean isOrder() {
+		return order;
+	}
 
 	public static Group term(String... storeName) {
 		Group group = new Group();

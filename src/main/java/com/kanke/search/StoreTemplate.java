@@ -151,8 +151,6 @@ public class StoreTemplate {
 	}
 
 	public GroupResponse group(String index, Group group, Query query, Pageable pageable) {
-		IndexReader indexReader = this.getIndexReader(index);
-		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
 		GroupBuilder  groupBuilder  = GroupBuilders.groupBy(group.getStoreNames()).fieldName(group.getAliasName());
 		if(group.isOrder()) {
 			if(group.isReverse()) {
@@ -161,15 +159,7 @@ public class StoreTemplate {
 				groupBuilder.asc();
 			}
 		}
-		AllGroupCollector  allGroupCollector  =  new AllGroupCollector(groupBuilder,this.getStoreFilelds(index));
-		try {
-			indexSearcher.search(query,allGroupCollector);
-			GroupResponse groupResponse = new GroupResponse(allGroupCollector,indexSearcher, pageable);
-			groupResponse.exec();
-			return groupResponse;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		return this.group(index, groupBuilder, query, pageable);
 	}
 	
 	

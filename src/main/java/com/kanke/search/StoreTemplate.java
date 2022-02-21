@@ -38,7 +38,6 @@ import com.kanke.search.query.Pageable;
 import com.kanke.search.query.QueryUtils;
 import com.kanke.search.query.collector.AllGroupCollector;
 import com.kanke.search.query.group.GroupQuery;
-import com.kanke.search.query.group.GroupTermQuery;
 import com.kanke.search.util.DocumentUtil;
 
 public class StoreTemplate {
@@ -158,7 +157,7 @@ public class StoreTemplate {
 		AllGroupCollector  allGroupCollector  =  new AllGroupCollector(groupBuilder,this.getStoreFilelds(index));
 		try {
 			indexSearcher.search(query,allGroupCollector);
-			GroupResponse groupResponse = new GroupResponse(allGroupCollector, pageable);
+			GroupResponse groupResponse = new GroupResponse(allGroupCollector,indexSearcher, pageable);
 			return groupResponse;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -175,7 +174,7 @@ public class StoreTemplate {
 		AllGroupCollector  allGroupCollector  = new AllGroupCollector(groupBuilder,this.getStoreFilelds(index));
 		try {
 			indexSearcher.search(query,allGroupCollector);
-			GroupResponse groupResponse = new GroupResponse(allGroupCollector,pageable);
+			GroupResponse groupResponse = new GroupResponse(allGroupCollector,indexSearcher,pageable);
 			groupResponse.setGroupQuery(groupQuery);
 			groupResponse.exec();
 			return groupResponse;

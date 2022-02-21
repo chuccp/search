@@ -68,11 +68,12 @@ public class GroupDocValues {
 	public TermValue getTermValue() throws IOException {
 		TermValue termValue = new TermValue();
 		for (SortedDocValues sortedDocValues : sortedDocValuesList0) {
-				BytesRef bytesRef  = sortedDocValues.binaryValue();
 				termValue.addValue(sortedDocValues.binaryValue());
+				termValue.setDocId(sortedDocValues.docID());
 		}
 		for (NumericDocValues sortedDocValues : sortedNumericDocValuesList0) {
 				termValue.addValue(sortedDocValues.longValue());
+				termValue.setDocId(sortedDocValues.docID());
 		}
 		return termValue;
 	}

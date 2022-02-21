@@ -1,17 +1,19 @@
 package com.kanke.search.query;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.search.IndexSearcher;
 
 import com.kanke.search.query.collector.AllGroupCollector;
 import com.kanke.search.query.collector.GroupValue;
 import com.kanke.search.query.collector.TermValue;
 import com.kanke.search.query.group.GroupQuery;
-import com.kanke.search.query.group.GroupTermQuery;
 import com.kanke.search.query.selector.Selector;
 import com.kanke.search.query.selector.TermSelector;
 import com.kanke.search.util.GroupUtils;
@@ -23,10 +25,13 @@ public class GroupResponse {
 	private GroupQuery groupQuery;
 
 	private Pageable pageable;
+	
+	private IndexSearcher indexSearcher;
 
-	public GroupResponse(AllGroupCollector allGroupCollector, Pageable pageable) {
+	public GroupResponse(AllGroupCollector allGroupCollector,IndexSearcher indexSearcher, Pageable pageable) {
 		this.allGroupCollector = allGroupCollector;
 		this.pageable = pageable;
+		this.indexSearcher = indexSearcher;
 
 	}
 	
@@ -94,6 +99,15 @@ public class GroupResponse {
 				@Override
 				public TermValue getTermValue() {
 					return termSelector.getTermValue(this.getGroupId());
+				}
+				@Override
+				public List<Document> getDocuments() throws IOException {
+					Integer[] docIds = termSelector.getDocIds(this.getGroupId());
+					List<Document> list = new ArrayList<>();
+					for(Integer docId:docIds) {
+						list.add(indexSearcher.doc(docId));
+					}
+					return list;
 				}
 			};
 			buckets.add(bucket);

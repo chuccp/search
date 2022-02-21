@@ -1,5 +1,8 @@
 package com.kanke.search.query.collector;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.BytesRefArray;
 import org.apache.lucene.util.BytesRefBuilder;
@@ -11,6 +14,8 @@ public class TermValue {
 	private BytesRefBuilder bytesRefBuilder;
 
 	private BytesRefArray bytesRefArray = new BytesRefArray(Counter.newCounter());
+	
+	private Integer docId;
 
 	public TermValue() {
 		bytesRefBuilder = new BytesRefBuilder();
@@ -26,6 +31,8 @@ public class TermValue {
 		this.addValue(bytesRef);
 	}
 
+	
+	
 	public void addValue(long num) {
 		byte[] data = new byte[8];
 		NumericUtils.longToSortableBytes(num, data, 0);
@@ -52,6 +59,14 @@ public class TermValue {
 	@Override
 	public String toString() {
 		return this.get(0).utf8ToString();
+	}
+
+	public Integer getDocId() {
+		return docId;
+	}
+
+	public void setDocId(Integer docId) {
+		this.docId = docId;
 	}
 
 }

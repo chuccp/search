@@ -13,6 +13,7 @@ import com.kanke.search.annotation.StoreField;
 import com.kanke.search.annotation.StoreFieldId;
 import com.kanke.search.annotation.StoreIgnoreField;
 import com.kanke.search.annotation.StoreIndex;
+import com.kanke.search.exception.StoreFieldIdNullRuntimeException;
 
 public class StoreFilelds {
 
@@ -99,6 +100,9 @@ public class StoreFilelds {
 				}
 				storeFilelds.addFields(storeFileld);
 			}
+		}
+		if(storeFilelds.idField==null) {
+			throw new StoreFieldIdNullRuntimeException(cls);
 		}
 
 		return storeFilelds;

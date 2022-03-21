@@ -1,10 +1,7 @@
 package com.kanke.search.query;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.lucene.document.Document;
 
 import com.kanke.search.query.collector.GroupValue;
 import com.kanke.search.query.collector.TermValue;
@@ -46,7 +43,7 @@ public class GroupResponse {
 				
 				@Override
 				public String getStoreName(int num) {
-					return termSelector.getTermValue(this.getGroupId()).getValue(null);
+					return termSelector.getTermValue(this.getGroupId()).getValue(num);
 				}
 				
 				@Override

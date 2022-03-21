@@ -46,9 +46,11 @@ public class TestQuery {
 		Group group = GroupBuilders.groupBy(GroupField.createGroupField("Log","hour"),GroupField.createGroupField("User", "userName")).count("num").desc().build();
 		GroupResponse groupResponse = storeTemplate.group(groupIndex,group,Pageable.page(10));
 		
-		List<Bucket> list = groupResponse.getBuckets();
+		List<Bucket> bucketList = groupResponse.getBuckets();
 		
-		System.out.println(groupResponse);
+		for(Bucket bucket:bucketList) {
+			System.out.println(bucket.getTermValue().getValue("hour")+"    "+bucket.getTermValue().getValue("userName")+"  "+bucket.getFieldValue("num").getValue());
+		}
 	}
 	
 	

@@ -20,12 +20,5 @@ public class GroupValue {
 		this.value = value;
 	}
 
-	public void count() {
-		this.value++;
-	}
-
-	public void sum(long num) {
-		this.value = this.value + num;
-	}
 
 }

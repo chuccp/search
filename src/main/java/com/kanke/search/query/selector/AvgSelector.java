@@ -4,9 +4,9 @@ import com.kanke.search.query.GroupBuilder.Report;
 import com.kanke.search.query.collector.GroupValue;
 import com.kanke.search.query.collector.TermValue;
 
-public class SumSelector extends Selector {
-	
-	public SumSelector(Report report) {
+public class AvgSelector extends Selector {
+
+	public AvgSelector(Report report) {
 		super(report);
 	}
 
@@ -17,10 +17,8 @@ public class SumSelector extends Selector {
 
 	@Override
 	public GroupValue getGroupValue(Integer groupId) {
+		// TODO Auto-generated method stub
 		return null;
 	}
-
-
-
 
 }

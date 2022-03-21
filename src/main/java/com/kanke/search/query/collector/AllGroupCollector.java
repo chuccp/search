@@ -19,7 +19,9 @@ import com.kanke.search.query.GroupIndex;
 import com.kanke.search.query.GroupIndexBuilders.Join;
 import com.kanke.search.query.GroupResponse;
 import com.kanke.search.query.Pageable;
+import com.kanke.search.query.selector.AvgSelector;
 import com.kanke.search.query.selector.CountSelector;
+import com.kanke.search.query.selector.MaxSelector;
 import com.kanke.search.query.selector.SumSelector;
 import com.kanke.search.query.selector.TermSelector;
 import com.kanke.search.type.GroupType;
@@ -59,6 +61,12 @@ public class AllGroupCollector extends SimpleCollector {
 				termSelector.AddSelector(new CountSelector(report));
 			}else if (report.getGroupType()==GroupType.SUM) {
 				termSelector.AddSelector(new SumSelector(report));
+			}else if (report.getGroupType()==GroupType.AVG) {
+				termSelector.AddSelector(new AvgSelector(report));
+			}else if (report.getGroupType()==GroupType.MAX) {
+				termSelector.AddSelector(new MaxSelector(report));
+			}else if (report.getGroupType()==GroupType.MIN) {
+				termSelector.AddSelector(new MaxSelector(report));
 			}
 		}
 	}

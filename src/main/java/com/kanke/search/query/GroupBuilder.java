@@ -34,6 +34,7 @@ public class GroupBuilder {
 
 	public GroupBuilder(GroupBuilder root) {
 		this.root = root;
+	
 	}
 
 	private GroupType groupType;
@@ -56,39 +57,41 @@ public class GroupBuilder {
 	}
 
 	public GroupBuilder count(String aliasName) {
-		this.root.setGroupType(GroupType.COUNT);
-		this.root.report = new Report(null, aliasName);
-		return this.root;
+		GroupBuilder groupBuilder = new GroupBuilder(this.root);
+		groupBuilder.report = new Report(null, aliasName);
+		groupBuilder.report.setGroupType(GroupType.COUNT);
+		this.root.reports.add(groupBuilder.report);
+		return groupBuilder;
 	}
 
 	public GroupBuilder sum(GroupField groupField, String aliasName) {
 		GroupBuilder groupBuilder = new GroupBuilder(this.root);
-		groupBuilder.report.setGroupType(GroupType.SUM);
 		groupBuilder.report = new Report(groupField, aliasName);
+		groupBuilder.report.setGroupType(GroupType.SUM);
 		this.root.reports.add(groupBuilder.report);
 		return groupBuilder;
 	}
 
 	public GroupBuilder max(GroupField groupField, String aliasName) {
 		GroupBuilder groupBuilder = new GroupBuilder(this.root);
-		groupBuilder.report.setGroupType(GroupType.MAX);
 		groupBuilder.report = new Report(groupField, aliasName);
+		groupBuilder.report.setGroupType(GroupType.MAX);
 		this.root.reports.add(groupBuilder.report);
 		return groupBuilder;
 	}
 
 	public GroupBuilder min(GroupField groupField, String aliasName) {
 		GroupBuilder groupBuilder = new GroupBuilder(this.root);
-		groupBuilder.report.setGroupType(GroupType.MIN);
 		groupBuilder.report = new Report(groupField, aliasName);
+		groupBuilder.report.setGroupType(GroupType.MIN);
 		this.root.reports.add(groupBuilder.report);
 		return groupBuilder;
 	}
 
 	public GroupBuilder avg(GroupField groupField, String aliasName) {
 		GroupBuilder groupBuilder = new GroupBuilder(this.root);
-		groupBuilder.report.setGroupType(GroupType.AVG);
 		groupBuilder.report = new Report(groupField, aliasName);
+		groupBuilder.report.setGroupType(GroupType.AVG);
 		this.root.reports.add(groupBuilder.report);
 		return groupBuilder;
 	}

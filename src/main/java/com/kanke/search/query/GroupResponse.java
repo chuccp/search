@@ -1,8 +1,13 @@
 package com.kanke.search.query;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.lucene.document.Document;
+
+import com.kanke.search.query.collector.GroupValue;
+import com.kanke.search.query.collector.TermValue;
 import com.kanke.search.query.selector.TermSelector;
 
 public class GroupResponse {
@@ -20,9 +25,37 @@ public class GroupResponse {
 	
 
 	public void exec() {
+		List<Integer> groupIds = termSelector.groupIds();
+		int fromIndex = pageable.getOffset();
+		int toIndex = pageable.getOffset()+pageable.getLimit();
+		List<Integer> ids = groupIds.subList(fromIndex,toIndex);
 		
 		
 		
+		for(Integer id:ids) {
+			buckets.add(new Bucket(id) {
+				
+				@Override
+				public TermValue getTermValue() {
+					return termSelector.getTermValue(this.getGroupId());
+				}
+				
+				@Override
+				public String getStoreName(int num) {
+					return termSelector.getTermValue(this.getGroupId()).getValue(null);
+				}
+				
+				@Override
+				public GroupValue getFieldValue(String name) {
+					return termSelector.getSelector(name).getGroupValue(this.getGroupId());
+				}
+				
+				@Override
+				public List<Document> getDocuments() throws IOException {
+					return null;
+				}
+			});
+		}
 		
 	}
 

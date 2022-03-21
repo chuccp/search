@@ -4,23 +4,21 @@ import com.kanke.search.query.GroupBuilder.Report;
 import com.kanke.search.query.collector.GroupValue;
 import com.kanke.search.query.collector.TermValue;
 
-public class SumSelector extends Selector {
-	
-	public SumSelector(Report report) {
+public class MinSelector extends Selector {
+
+	public MinSelector(Report report) {
 		super(report);
 	}
 
 	@Override
 	public void collect(int groupId, TermValue termValue) {
-		
+
 	}
 
 	@Override
 	public GroupValue getGroupValue(Integer groupId) {
+		// TODO Auto-generated method stub
 		return null;
 	}
-
-
-
 
 }

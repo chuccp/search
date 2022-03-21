@@ -1,23 +1,50 @@
 package com.kanke.search.query;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.Query;
 
 public class Group {
 
 	Query query;
+	
+	private GroupField[] groupFields;
+	
+	
+	private Map<String,GroupField> groupFieldMap = new LinkedHashMap<>();
+	
+	public GroupField getGroupField(String index) {
+		return groupFieldMap.get(index);
+	}
+	public List<GroupField> getOtherGroupFields(String index) {
+		List<GroupField> list = new ArrayList<GroupField>();
+		for (Map.Entry<String,GroupField> entry : groupFieldMap.entrySet()) {
+			String key = entry.getKey();
+			if(StringUtils.equalsIgnoreCase(index, key)) {
+				continue;
+			}
+			GroupField val = entry.getValue();
+			list.add(val);
+		}
+		return list;
+	}
+	
+	
 
-
-	private String[] storeNames;
-
-
-	public String[] getStoreNames() {
-		return storeNames;
+	public GroupField[] getGroupFields() {
+		return groupFields;
 	}
 
-	public void setStoreNames(String[] storeNames) {
-		this.storeNames = storeNames;
+	public void setGroupFields(GroupField[] groupFields) {
+		this.groupFields = groupFields;
+		for(GroupField gf:groupFields) {
+			groupFieldMap.put(gf.getIndex(), gf);
+		}
 	}
-
 	private int offset;
 
 	private int limit = 100;
@@ -83,9 +110,29 @@ public class Group {
 	}
 
 	public static Group term(String... storeName) {
+		GroupField groupField = new GroupField();
+		groupField.setStoreNames(storeName);
+		return term(groupField);
+	}
+	public static Group term(GroupField... groupFields) {
 		Group group = new Group();
-		group.storeNames = storeName;
+		group.groupFields = groupFields;
 		return group;
 	}
+	
+	private List<GroupBuilder.Report> list = new ArrayList<>();
+	
+	public void addReport(GroupBuilder.Report report) {
+		list.add(report);
+	}
+
+	public List<GroupBuilder.Report> getReports() {
+		return list;
+	}
+	
+	
+	
+	
+	
 
 }

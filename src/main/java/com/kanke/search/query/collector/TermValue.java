@@ -1,38 +1,41 @@
 package com.kanke.search.query.collector;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.BytesRefArray;
 import org.apache.lucene.util.BytesRefBuilder;
-import org.apache.lucene.util.Counter;
-import org.apache.lucene.util.NumericUtils;
 
 public class TermValue {
+	
+	public TermValue() {
+		 this.bytesRefBuilder= new BytesRefBuilder();
+		 this.valuesMap = new HashMap<>();
+	}
+	
+	
+	public void addTermValue(TermValue termValue) {
+		this.bytesRefBuilder.append(termValue.bytesRefBuilder);
+		this.valuesMap.putAll(termValue.valuesMap);
+		
+	}
+	
+	private int docId;
 
 	private BytesRefBuilder bytesRefBuilder;
 
-	private BytesRefArray bytesRefArray = new BytesRefArray(Counter.newCounter());
 	
+	private Map<String,BytesRefValue> valuesMap;
 
-	public TermValue() {
-		bytesRefBuilder = new BytesRefBuilder();
+	public void addValue(String storeName,BytesRefValue bytesRefValue) {
+		valuesMap.put(storeName, bytesRefValue);
+
 	}
-
-	public void addValue(BytesRef bytesRef) {
-		bytesRefArray.append(bytesRef);
-		bytesRefBuilder.append(bytesRef);
-	}
-
-	public void addValue(byte[] bytes) {
-		BytesRef bytesRef = new BytesRef(bytes);
-		this.addValue(bytesRef);
-	}
-
 	
 	
-	public void addValue(long num) {
-		byte[] data = new byte[8];
-		NumericUtils.longToSortableBytes(num, data, 0);
-		this.addValue(data);
+	public void addTermValue(String storeName,BytesRefValue bytesRefValue) {
+		valuesMap.put(storeName, bytesRefValue);
+		bytesRefBuilder.append(bytesRefValue.getValue());
 	}
 
 	public BytesRef toBytesRef() {
@@ -40,22 +43,24 @@ public class TermValue {
 	}
 
 	public int getSize() {
-		return bytesRefArray.size();
+		return valuesMap.size();
 	}
 
-	public BytesRef get(int index) {
-		BytesRefBuilder spare = new BytesRefBuilder();
-		return bytesRefArray.get(spare, index);
-
+	public BytesRefValue get(String storeName) {
+		return valuesMap.get(storeName);
+	}
+	
+	public String getValue(String storeName) {
+		BytesRefValue v  = get(storeName);
+		return v.toString();
 	}
 
-	public String toString(int num) {
-		return this.get(num).utf8ToString();
-	}
-	@Override
-	public String toString() {
-		return this.get(0).utf8ToString();
+	public int getDocId() {
+		return docId;
 	}
 
+	public void setDocId(int docId) {
+		this.docId = docId;
+	}
 
 }

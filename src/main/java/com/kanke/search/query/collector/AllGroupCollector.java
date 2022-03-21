@@ -1,60 +1,69 @@
 package com.kanke.search.query.collector;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.lucene.index.DocValuesType;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreMode;
 import org.apache.lucene.search.SimpleCollector;
-import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.BytesRefHash;
 
-import com.kanke.search.entry.StoreFileldIndexs;
-import com.kanke.search.query.GroupBuilder;
-import com.kanke.search.query.selector.Selector;
+import com.kanke.search.IndexFactory;
+import com.kanke.search.query.Group;
+import com.kanke.search.query.GroupBuilder.Report;
+import com.kanke.search.query.GroupIndex;
+import com.kanke.search.query.GroupIndexBuilders.Join;
+import com.kanke.search.query.GroupResponse;
+import com.kanke.search.query.Pageable;
+import com.kanke.search.query.selector.CountSelector;
+import com.kanke.search.query.selector.SumSelector;
 import com.kanke.search.query.selector.TermSelector;
+import com.kanke.search.type.GroupType;
 
 public class AllGroupCollector extends SimpleCollector {
 
-	private GroupBuilder groupBuilder;
+	private IndexFactory indexFactory;
+	
+	
+	private GroupReader groupReader;
 
-	private StoreFileldIndexs storeFileldIndexs;
-
-	public AllGroupCollector(GroupBuilder groupBuilder, StoreFileldIndexs storeFileldIndexs) {
-		this.groupBuilder = groupBuilder;
-		this.storeFileldIndexs = storeFileldIndexs;
-		this.termSelector = new TermSelector(groupBuilder.getStoreNames());
-		this.termSelector.setOrder(groupBuilder.isOrder());
-		this.termSelector.setReverse(groupBuilder.isReverse());
-
-		allSelectorMap.put(groupBuilder.getFieldName(), termSelector);
-
-		List<GroupBuilder> groupBuilders = this.groupBuilder.getGroupBuilderList();
-		for (GroupBuilder group : groupBuilders) {
-			Selector selector = Selector.create(group.getGroupType(),
-					storeFileldIndexs.getSortFieldType(group.getStoreName()), group.getStoreNames());
-			selector.setReverse(group.isReverse());
-			selector.setOrder(group.isOrder());
-			selectorMap.put(group.getFieldName(), selector);
-			allSelectorMap.put(group.getFieldName(), selector);
-		}
-	}
-
-	private GroupDocValues groupDocValues = new GroupDocValues();
-
-	private TermSelector termSelector;
-
-	private Map<String, Selector> selectorMap = new LinkedHashMap<>();
-
-	private Map<String, Selector> allSelectorMap = new LinkedHashMap<>();
-
-	private BytesRefHash bytesRefHash = new BytesRefHash();
+	private GroupDocValues groupDocValues ; 
 	
 	private int docBase = 0;
-
+	
+	private TermSelector termSelector;
+	
+	private TermValueCache termValueCache = new TermValueCache();
+	
+	
+	
+	private List<TermValue> termValueList = new ArrayList<TermValue>();
+	
+	public AllGroupCollector(IndexFactory indexFactory,GroupIndex groupIndex,Group group) {
+		this.groupReader = new GroupReader(groupIndex, group);
+		this.indexFactory = indexFactory;
+		this.groupDocValues =new GroupDocValues(group.getGroupField(groupIndex.getIndex()));
+		this.termSelector = new TermSelector();
+		this.initGroup();
+	}
+	
+	
+	private void initGroup() {
+		List<Report>  list = groupReader.getReports();
+		for(Report report:list) {
+			if(report.getGroupType()==GroupType.COUNT) {
+				termSelector.AddSelector(new CountSelector(report));
+			}else if (report.getGroupType()==GroupType.SUM) {
+				termSelector.AddSelector(new SumSelector(report));
+			}
+		}
+	}
+	
+	
 	@Override
 	public ScoreMode scoreMode() {
 		return ScoreMode.COMPLETE_NO_SCORES;
@@ -64,54 +73,67 @@ public class AllGroupCollector extends SimpleCollector {
 	public void collect(int doc) throws IOException {
 		groupDocValues.advanceExact(doc);
 		TermValue termValue = groupDocValues.getTermValue();
-		BytesRef bytesRef = termValue.toBytesRef();
-
-		int groupId = bytesRefHash.find(bytesRef);
-		if (groupId < 0) {
-			groupId = bytesRefHash.add(bytesRef);
-		}
-		termSelector.collect(groupId, termValue);
-		termSelector.addDocId(groupId, doc+this.docBase);
-		for (Selector selector : selectorMap.values()) {
-			TermValue tv = groupDocValues.getTermValue(selector.getStoreName());
-			selector.collect(groupId, tv);
+		termValue.setDocId(doc+this.docBase);
+		termValueList.add(termValue);
+		if(termValueList.size()==1000) {
+			this.groupTermValue(termValueList);
+			termValueList.clear();
 		}
 	}
-
-	public TermSelector getTermSelector() {
-		return termSelector;
+	
+	
+	
+	private void groupTermValue(List<TermValue> termValueList) throws IOException {
+		 Map<String,JoinValue> joinValuesMap = new HashMap<>();
+		for(TermValue termValue:termValueList) {
+			List<Join> joins = this.groupReader.getJoin();
+			for(Join join:joins) {
+				String filename = join.getOnfiledName();
+				if(!joinValuesMap.containsKey(filename)) {
+					joinValuesMap.put(filename,new JoinValue(join));
+				}
+				joinValuesMap.get(filename).add(termValue.get(filename));
+			}
+		}
+		for (Map.Entry<String,JoinValue> entry : joinValuesMap.entrySet()) {
+			JoinValue val = entry.getValue();
+			GroupJoinCollctor groupJoinCollctor = new GroupJoinCollctor(val, indexFactory,this.groupReader,this.termValueCache,termValueList);
+			groupJoinCollctor.exec();
+		}
+		for(TermValue termValue:termValueList) {
+			termSelector.collect(termValue);
+		}
 	}
-
-	public Map<String, Selector> getAllSelectorMap() {
-		return allSelectorMap;
-	}
-
-	public Map<String, Selector> getSelectorMap() {
-		return selectorMap;
-	}
-
+	
 	@Override
 	protected void doSetNextReader(LeafReaderContext context) throws IOException {
-		groupDocValues.clear();
+		this.groupDocValues.clear();
 		this.docBase=context.docBase;
-		if (groupBuilder.getStoreNames().length > 0) {
-			for (String storeName : groupBuilder.getStoreNames()) {
-				DocValuesType docValuesType = storeFileldIndexs.getDocValuesType(storeName);
-				if (docValuesType == DocValuesType.SORTED) {
-					groupDocValues.addSort0(context, storeName);
-				} else if (docValuesType == DocValuesType.NUMERIC) {
-					groupDocValues.addSortNumeric0(context, storeName);
-				}
-			}
-			for (String storeName : groupBuilder.getListStoreNames()) {
-				DocValuesType docValuesType = storeFileldIndexs.getDocValuesType(storeName);
-				if (docValuesType == DocValuesType.SORTED) {
-					groupDocValues.addSort1(context, storeName);
-				} else if (docValuesType == DocValuesType.NUMERIC) {
-					groupDocValues.addSortNumeric1(context, storeName);
-				}
-			}
+		String[] storeNames =this.groupReader.getMainSortNames();
+		for(String storeName:storeNames) {
+			this.groupDocValues.addSort(context, storeName);
+		}
+	}
+	
+	
+	private void after() throws IOException {
+		if(!termValueList.isEmpty()) {
+			this.groupTermValue(termValueList);
 		}
 	}
 
+	private void exec() throws IOException {
+		IndexReader  indexReader  = this.indexFactory.getIndexReader(this.groupReader.getMainIndex());
+		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+		indexSearcher.search(this.groupReader.getMainQuery(), this);
+		this.after();
+		
+	}
+	
+	public GroupResponse search(Pageable pageable) throws IOException{
+		this.exec();
+		GroupResponse groupResponse = new GroupResponse(pageable,this.termSelector);
+		groupResponse.exec();
+		return groupResponse;
+	}
 }

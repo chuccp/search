@@ -13,6 +13,16 @@ public class BuilderQuery {
 		builder = builder.add(query, Occur.MUST);
 		return this;
 	}
+	
+	public BuilderQuery should(Query query) {
+		builder = builder.add(query, Occur.SHOULD);
+		return this;
+	}
+	
+	public BuilderQuery mustNo(Query query) {
+		builder = builder.add(query, Occur.MUST_NOT);
+		return this;
+	}
 
 	public Query build() {
 		return builder.build();

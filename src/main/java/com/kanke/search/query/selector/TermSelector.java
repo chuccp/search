@@ -1,59 +1,51 @@
 package com.kanke.search.query.selector;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import org.apache.lucene.search.SortField;
+import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.BytesRefHash;
 
-import com.kanke.search.query.collector.GroupValue;
 import com.kanke.search.query.collector.TermValue;
 
-public class TermSelector extends Selector {
-	
-	private Map<Integer, TermValue> termValueMap = new LinkedHashMap<>();
+public class TermSelector  {
 	
 	
-	private Map<Integer, Set<Integer>> docValueMap = new LinkedHashMap<>();
+	private Map<Integer,TermValue> termMap = new LinkedHashMap<>();
+	
+	
+	
+	
+	private List<Selector> selectorList;
+	public TermSelector() {
+		this.selectorList = new ArrayList<>();
+	}
+	
+	public void AddSelector(Selector selector) {
+		this.selectorList.add(selector);
+	}
+	private BytesRefHash bytesRefHash = new BytesRefHash();
 
-	public TermSelector(String[] storeNames) {
-		super(storeNames,SortField.Type.INT);
+	public void collect(TermValue termValue) {
+		BytesRef bytesRef = termValue.toBytesRef();
+		int groupId = bytesRefHash.find(bytesRef);
+		if (groupId < 0) {
+			groupId = bytesRefHash.add(bytesRef);
+		}
+		this.collect(groupId, termValue);
 	}
-	@Override
 	public void collect(int groupId, TermValue termValue) {
-		if (mapValue.containsKey(groupId)) {
-			mapValue.get(groupId).count();
-		} else {
-			GroupValue gv = new GroupValue();
-			gv.count();
-			mapValue.put(groupId, gv);
-			termValueMap.put(groupId, termValue);
+		if(!termMap.containsKey(groupId)) {
+			termMap.put(groupId, termValue);
+		}
+		for(Selector selector:selectorList) {
+			selector.collect(groupId, termValue);
 		}
 	}
 	
-	public void addDocId(int groupId, Integer docId) {
-		if(!docValueMap.containsKey(groupId)) {
-			docValueMap.put(groupId, new HashSet<>());
-		}
-		docValueMap.get(groupId).add(docId);
-		
-		
-	}
 	
-	public TermValue getTermValue(Integer groupId) {
-		return termValueMap.get(groupId);
-	}
 	
-	public List<Integer> getDocIdList(Integer groupId) {
-		return new ArrayList<Integer>(docValueMap.get(groupId));
-	}
-	public Integer[] getDocIds(Integer groupId) {
-		return docValueMap.get(groupId).toArray(new Integer[] {});
-	}
-	public Map<Integer, GroupValue> getMapValue() {
-		return mapValue;
-	}
+	
 }

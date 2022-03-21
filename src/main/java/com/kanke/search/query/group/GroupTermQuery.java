@@ -1,10 +1,6 @@
 package com.kanke.search.query.group;
 
-import java.util.Map;
-
-import com.kanke.search.query.selector.Selector;
-
-public class GroupTermQuery extends GroupQuery{
+public class GroupTermQuery{
 
 	private GroupQueryType groupQueryType;
 
@@ -71,23 +67,5 @@ public class GroupTermQuery extends GroupQuery{
 
 	public String getFieldName() {
 		return fieldName;
-	}
-	
-	
-
-	@Override
-	public boolean equals(int groupId, Map<String, Selector> selectorMap) {
-		Selector  selector  = selectorMap.get(fieldName);
-		long value = selector.get(groupId).getValue();
-		if(this.groupQueryType == GroupQueryType.RANGE) {
-			if(value<=this.upValue&&value>=this.lowValue) {
-				return true;
-			}
-		}else if(this.groupQueryType == GroupQueryType.EQ) {
-			if(value==this.value) {
-				return true;
-			}
-		}
-		return false;
 	}
 }

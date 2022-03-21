@@ -1,6 +1,5 @@
 package com.kanke.search;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -8,13 +7,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
@@ -23,7 +19,6 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.FSDirectory;
 
 import com.kanke.search.annotation.StoreIndex;
 import com.kanke.search.entry.StoreFileld;
@@ -31,26 +26,20 @@ import com.kanke.search.entry.StoreFileldIndex;
 import com.kanke.search.entry.StoreFileldIndexs;
 import com.kanke.search.entry.StoreFilelds;
 import com.kanke.search.query.Group;
-import com.kanke.search.query.GroupBuilder;
-import com.kanke.search.query.GroupBuilders;
+import com.kanke.search.query.GroupIndex;
 import com.kanke.search.query.GroupResponse;
 import com.kanke.search.query.Pageable;
 import com.kanke.search.query.QueryUtils;
 import com.kanke.search.query.collector.AllGroupCollector;
-import com.kanke.search.query.group.GroupQuery;
 import com.kanke.search.util.DocumentUtil;
 
 public class StoreTemplate {
 	
+	private IndexFactory indexFactory;
 
-
-	private Path path;
-	private Map<String, IndexWriter> indexWriterMap = new LinkedHashMap<>();
-
-	private Map<String, IndexReader> indexReaderMap = new LinkedHashMap<>();
 
 	public StoreTemplate(Path path) {
-		this.path = path;
+		this.indexFactory = new IndexFactory(path);
 	}
 	
 	
@@ -92,7 +81,7 @@ public class StoreTemplate {
 	}
 	
 	
-	private StoreFileldIndexs getStoreFilelds(String index) {
+	public StoreFileldIndexs getStoreFilelds(String index) {
 		StoreFileldIndexs storeFileldIndexs = StoreFileldIndexs.CreateStoreFileldIndexs();
 		for( StoreFileldIndex sfi:storeFileldIndexMap.values()) {
 			if(StringUtils.equals(index, sfi.getIndexName())) {
@@ -145,37 +134,13 @@ public class StoreTemplate {
 	}
 
 	public void deleteIndex(String index) throws IOException {
-		File filePath = new File(path.toFile(), index);
-		FileUtils.deleteDirectory(filePath);
-
+		indexFactory.deleteIndex(index);
 	}
 
-	public GroupResponse group(String index, Group group, Query query, Pageable pageable) {
-		GroupBuilder  groupBuilder  = GroupBuilders.groupBy(group.getStoreNames()).fieldName(group.getAliasName());
-		if(group.isOrder()) {
-			if(group.isReverse()) {
-				groupBuilder.desc();
-			}else {
-				groupBuilder.asc();
-			}
-		}
-		return this.group(index, groupBuilder, query, pageable);
-	}
-	
-	
-	public GroupResponse group(String index, GroupBuilder groupBuilder, Query query, Pageable pageable) {
-		return this.group(index, groupBuilder, null, query, pageable);
-	}
-	public GroupResponse group(String index, GroupBuilder groupBuilder, GroupQuery groupQuery,Query query, Pageable pageable) {
-		IndexReader indexReader = this.getIndexReader(index);
-		IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-		AllGroupCollector  allGroupCollector  = new AllGroupCollector(groupBuilder,this.getStoreFilelds(index));
+	public GroupResponse group(GroupIndex groupIndex,Group group,Pageable pageable) {
+		AllGroupCollector  allGroupCollector  = new AllGroupCollector(this.indexFactory,groupIndex,group);
 		try {
-			indexSearcher.search(query,allGroupCollector);
-			GroupResponse groupResponse = new GroupResponse(allGroupCollector,indexSearcher,pageable);
-			groupResponse.setGroupQuery(groupQuery);
-			groupResponse.exec();
-			return groupResponse;
+			return allGroupCollector.search(pageable);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -254,39 +219,12 @@ public class StoreTemplate {
 	}
 
 	private IndexWriter getIndexWriter(String index) throws IOException {
-		if (indexWriterMap.containsKey(index)) {
-			return indexWriterMap.get(index);
-		} else {
-			File filePath = new File(path.toFile(), index);
-			if (!filePath.exists()) {
-				filePath.mkdirs();
-			}
-			FSDirectory fSDirectory = FSDirectory.open(filePath.toPath());
-			IndexWriterConfig indexWriterConfig = new IndexWriterConfig();
-			IndexWriter indexWriter = new IndexWriter(fSDirectory, indexWriterConfig);
-
-			indexWriterMap.put(index, indexWriter);
-			return indexWriter;
-		}
+		return indexFactory.getIndexWriter(index);
 	}
 
 	private IndexReader getIndexReader(String index) {
-		if (indexReaderMap.containsKey(index)) {
-			return indexReaderMap.get(index);
-		} else {
-			File filePath = new File(path.toFile(), index);
-			if (!filePath.exists()) {
-				filePath.mkdirs();
-			}
-			try {
-				FSDirectory fSDirectory = FSDirectory.open(filePath.toPath());
-				IndexReader reader = DirectoryReader.open(fSDirectory);
-				indexReaderMap.put(index, reader);
-				return reader;
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
+		return indexFactory.getIndexReader(index);
+		
 	}
 
 }

@@ -3,82 +3,40 @@ package com.kanke.search.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.kanke.search.query.group.GroupTermQuery;
 import com.kanke.search.type.GroupType;
 
 public class GroupBuilder {
 
-	private String[] storeNames;
+	private List<Report> reports;
 
-	private String fieldName;
+	private GroupField[] groupFields;
+	
+	private GroupTermQuery groupQuery;
+	
+	
+
+	public GroupTermQuery getGroupQuery() {
+		return groupQuery;
+	}
+
+	public void setGroupQuery(GroupTermQuery groupQuery) {
+		this.groupQuery = groupQuery;
+	}
+
+	private GroupBuilder root;
+
+	public GroupBuilder(GroupField... groupFields) {
+		this.groupFields = groupFields;
+		this.reports = new ArrayList<>();
+		this.root = this;
+	}
+
+	public GroupBuilder(GroupBuilder root) {
+		this.root = root;
+	}
 
 	private GroupType groupType;
-
-	public GroupBuilder(String[] storeNames) {
-		this.storeNames = storeNames;
-	}
-
-	public GroupBuilder(String storeNames) {
-		this.storeNames = new String[] { storeNames };
-	}
-
-	public GroupBuilder fieldName(String fieldName) {
-		this.fieldName = fieldName;
-		return this;
-	}
-	
-
-	public String getFieldName() {
-		return fieldName;
-	}
-
-	private boolean reverse = false;
-
-	public GroupBuilder desc() {
-		reverse = true;
-		this.isOrder = true;
-		return this;
-	}
-
-
-	
-	
-	public GroupBuilder reverse(boolean reverse) {
-		this.reverse = reverse;
-		return this;
-	}
-
-	public GroupBuilder asc() {
-		reverse = false;
-		this.isOrder = true;
-		return this;
-	}
-	
-	public String[] getListStoreNames() {
-		List<String> list = new ArrayList<>();
-		for(GroupBuilder gb:groupBuilderList) {
-			String[] ss = gb.getStoreNames();
-			for(String s:ss) {
-				list.add(s);
-			}
-		}
-		return list.toArray(new String[] {});
-	}
-
-	public String[] getStoreNames() {
-		return storeNames;
-	}
-	
-	public String getStoreName() {
-		return storeNames[0];
-	}
-
-	public String getCountName() {
-		return fieldName;
-	}
-
-	public boolean isReverse() {
-		return reverse;
-	}
 
 	public GroupType getGroupType() {
 		return groupType;
@@ -88,24 +46,127 @@ public class GroupBuilder {
 		this.groupType = groupType;
 	}
 
-	private List<GroupBuilder> groupBuilderList = new ArrayList<>();
-
-	public GroupBuilder addGroupBuilder(GroupBuilder ...groupBuilders) {
-		for(GroupBuilder gb:groupBuilders) {
-			groupBuilderList.add(gb);
+	public Group build() {
+		Group group = new Group();
+		group.setGroupFields(this.root.groupFields);
+		for(Report report:this.root.reports) {
+			group.addReport(report);
 		}
+		return group;
+	}
+
+	public GroupBuilder count(String aliasName) {
+		this.root.setGroupType(GroupType.COUNT);
+		this.root.report = new Report(null, aliasName);
+		return this.root;
+	}
+
+	public GroupBuilder sum(GroupField groupField, String aliasName) {
+		GroupBuilder groupBuilder = new GroupBuilder(this.root);
+		groupBuilder.report.setGroupType(GroupType.SUM);
+		groupBuilder.report = new Report(groupField, aliasName);
+		this.root.reports.add(groupBuilder.report);
+		return groupBuilder;
+	}
+
+	public GroupBuilder max(GroupField groupField, String aliasName) {
+		GroupBuilder groupBuilder = new GroupBuilder(this.root);
+		groupBuilder.report.setGroupType(GroupType.MAX);
+		groupBuilder.report = new Report(groupField, aliasName);
+		this.root.reports.add(groupBuilder.report);
+		return groupBuilder;
+	}
+
+	public GroupBuilder min(GroupField groupField, String aliasName) {
+		GroupBuilder groupBuilder = new GroupBuilder(this.root);
+		groupBuilder.report.setGroupType(GroupType.MIN);
+		groupBuilder.report = new Report(groupField, aliasName);
+		this.root.reports.add(groupBuilder.report);
+		return groupBuilder;
+	}
+
+	public GroupBuilder avg(GroupField groupField, String aliasName) {
+		GroupBuilder groupBuilder = new GroupBuilder(this.root);
+		groupBuilder.report.setGroupType(GroupType.AVG);
+		groupBuilder.report = new Report(groupField, aliasName);
+		this.root.reports.add(groupBuilder.report);
+		return groupBuilder;
+	}
+
+	private Report report;
+
+	public GroupBuilder desc() {
+		if (report != null)
+			report.desc();
 		return this;
 	}
 
-	public List<GroupBuilder> getGroupBuilderList() {
-		return groupBuilderList;
+	public GroupBuilder asc() {
+		if (report != null)
+			report.asc();
+		return this;
 	}
-	
-	private boolean isOrder = false;
 
-	public boolean isOrder() {
-		return isOrder;
+	public class Report {
+
+		public Report(GroupField groupField, String aliasName) {
+			this.groupField = groupField;
+			this.aliasName = aliasName;
+		}
+
+		private boolean reverse = false;
+
+		private boolean isOrder = false;
+
+		private GroupType groupType;
+
+		private GroupField groupField;
+
+		private String aliasName;
+
+		public GroupType getGroupType() {
+			return groupType;
+		}
+
+		public void setGroupType(GroupType groupType) {
+			this.groupType = groupType;
+		}
+
+		public GroupField getGroupField() {
+			return groupField;
+		}
+
+		public void setGroupField(GroupField groupField) {
+			this.groupField = groupField;
+		}
+
+		public String getAliasName() {
+			return aliasName;
+		}
+
+		public void setAliasName(String aliasName) {
+			this.aliasName = aliasName;
+		}
+
+		public Report desc() {
+			reverse = true;
+			this.isOrder = true;
+			return this;
+		}
+
+		public Report asc() {
+			reverse = false;
+			this.isOrder = true;
+			return this;
+		}
+
+		public boolean isReverse() {
+			return reverse;
+		}
+
+		public boolean isOrder() {
+			return isOrder;
+		}
 	}
-	
-	
+
 }

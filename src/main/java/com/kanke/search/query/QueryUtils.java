@@ -36,15 +36,14 @@ public class QueryUtils {
 
 	public static Query createTermsQuery(String field, Collection<String> valueList) {
 		return createTermsQuery(field, valueList.toArray(new String[] {}));
-
 	}
-	
-	public static Query createDateFuncQuery(String field,long value,DateDocValues func) {
-		DateFuncValueSource dateFuncValueSource = new DateFuncValueSource(field,func,value);
+
+	public static Query createDateFuncQuery(String field, long value, DateDocValues func) {
+		DateFuncValueSource dateFuncValueSource = new DateFuncValueSource(field, func, value);
 		FunctionQuery functionQuery = new FunctionQuery(dateFuncValueSource);
 		return functionQuery;
 	}
-	
+
 	public static Query MatchAllDocsQuery() {
 		return new MatchAllDocsQuery();
 	}
@@ -53,6 +52,19 @@ public class QueryUtils {
 		List<BytesRef> list = new ArrayList<>();
 		for (String value : values) {
 			list.add(new BytesRef(value));
+		}
+		TermInSetQuery termInSetQuery = new TermInSetQuery(field, list);
+		return termInSetQuery;
+	}
+
+	public static Query createNumbersQuery(String field, Collection<Long> valueList) {
+		return createNumbersQuery(field, valueList.toArray(new Long[] {}));
+	}
+
+	public static Query createNumbersQuery(String field, Long... values) {
+		List<BytesRef> list = new ArrayList<>();
+		for (Long value : values) {
+			list.add(new BytesRef(Long.toString(value)));
 		}
 		TermInSetQuery termInSetQuery = new TermInSetQuery(field, list);
 		return termInSetQuery;
@@ -67,14 +79,15 @@ public class QueryUtils {
 		return NumericDocValuesField.newSlowRangeQuery(field, lowerValue, upperValue);
 	}
 
-	public static Query createRangeQuery(String field, float lowerValue, float upperValue){
-		return NumericDocValuesField.newSlowRangeQuery(field, Float.floatToRawIntBits(lowerValue), Float.floatToRawIntBits(upperValue));
+	public static Query createRangeQuery(String field, float lowerValue, float upperValue) {
+		return NumericDocValuesField.newSlowRangeQuery(field, Float.floatToRawIntBits(lowerValue),
+				Float.floatToRawIntBits(upperValue));
 	}
 
 	public static Query createRangeQuery(String field, Date lowerValue, Date upperValue) {
-		long  l = lowerValue.getTime();
-		long  u = upperValue.getTime();
-		if(l>u) {
+		long l = lowerValue.getTime();
+		long u = upperValue.getTime();
+		if (l > u) {
 			return NumericDocValuesField.newSlowRangeQuery(field, u, l);
 		}
 		return NumericDocValuesField.newSlowRangeQuery(field, l, u);
@@ -83,7 +96,5 @@ public class QueryUtils {
 	public static BuilderQuery createBoolQuery() {
 		return new BuilderQuery();
 	}
-	
-	
 
 }

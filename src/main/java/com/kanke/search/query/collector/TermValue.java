@@ -1,6 +1,8 @@
 package com.kanke.search.query.collector;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.util.BytesRef;
@@ -10,13 +12,16 @@ public class TermValue {
 	
 	public TermValue() {
 		 this.bytesRefBuilder= new BytesRefBuilder();
-		 this.valuesMap = new HashMap<>();
+		 this.valuesMap = new LinkedHashMap<>();
+		 this.valueList = new ArrayList<>();
 	}
 	
 	
 	public void addTermValue(TermValue termValue) {
 		this.bytesRefBuilder.append(termValue.bytesRefBuilder);
 		this.valuesMap.putAll(termValue.valuesMap);
+		this.valueList.addAll(termValue.valueList);
+		
 		
 	}
 	
@@ -26,16 +31,22 @@ public class TermValue {
 
 	
 	private Map<String,BytesRefValue> valuesMap;
+	
+	
+	private List<BytesRefValue> valueList;
+	
+	
 
 	public void addValue(String storeName,BytesRefValue bytesRefValue) {
-		valuesMap.put(storeName, bytesRefValue);
-
+		this.valuesMap.put(storeName, bytesRefValue);
+		this.valueList.add(bytesRefValue);
 	}
 	
 	
 	public void addTermValue(String storeName,BytesRefValue bytesRefValue) {
-		valuesMap.put(storeName, bytesRefValue);
-		bytesRefBuilder.append(bytesRefValue.getValue());
+		this.valuesMap.put(storeName, bytesRefValue);
+		this.bytesRefBuilder.append(bytesRefValue.getValue());
+		this.valueList.add(bytesRefValue);
 	}
 
 	public BytesRef toBytesRef() {
@@ -61,6 +72,11 @@ public class TermValue {
 
 	public void setDocId(int docId) {
 		this.docId = docId;
+	}
+
+
+	public String getValue(int num) {
+		return this.valueList.get(num).toString();
 	}
 
 }

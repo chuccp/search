@@ -1,10 +1,5 @@
 package com.kanke.search.query;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.apache.lucene.document.Document;
-
 import com.kanke.search.query.collector.GroupValue;
 import com.kanke.search.query.collector.TermValue;
 
@@ -33,8 +28,6 @@ public abstract class Bucket {
 	
 	public abstract TermValue getTermValue();
 	
-	
-	public abstract List<Document> getDocuments() throws IOException;
 
 
 	public  Long getAmouts(String name) {

@@ -7,6 +7,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.lucene.search.Query;
 import org.junit.jupiter.api.Test;
@@ -73,7 +75,7 @@ public class TestQuery {
 				log.setUserId(u.getUserId());
 				log.setLogId(String.valueOf(logId));
 				log.setTime(new Date());
-				log.setHour(DateUtils.toCalendar(log.getTime()).get(Calendar.HOUR));
+				log.setHour(RandomUtils.nextInt(0, 12));
 				log.setVideoId(String.valueOf(j));
 				log.setWatch(log.getTime().getTime());
 				llist.add(log);

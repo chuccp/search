@@ -53,11 +53,6 @@ public class GroupResponse {
 				public GroupValue getFieldValue(String name) {
 					return termSelector.getSelector(name).getGroupValue(this.getGroupId());
 				}
-				
-				@Override
-				public List<Document> getDocuments() throws IOException {
-					return null;
-				}
 			});
 		}
 		

@@ -43,13 +43,13 @@ public class TestQuery {
 		StoreTemplate storeTemplate = getStoreTemplate();
 		Query query1 =QueryUtils.MatchAllDocsQuery();
 		GroupIndex groupIndex = GroupIndexBuilders.index("Log",query1).Join("User", "userId",query1).on("userId").build();
-		Group group = GroupBuilders.groupBy(GroupField.createGroupField("Log","hour"),GroupField.createGroupField("User", "userName")).count("num").desc().build();
+		Group group = GroupBuilders.groupBy(GroupField.createGroupField("Log","hour")).count("num").desc().build();
 		GroupResponse groupResponse = storeTemplate.group(groupIndex,group,Pageable.page(10));
 		
 		List<Bucket> bucketList = groupResponse.getBuckets();
 		
 		for(Bucket bucket:bucketList) {
-			System.out.println(bucket.getTermValue().getValue("hour")+"    "+bucket.getTermValue().getValue("userName")+"  "+bucket.getFieldValue("num").getValue());
+			System.out.println(bucket.getTermValue().getValue("hour")+"     "+bucket.getFieldValue("num").getValue());
 		}
 	}
 	

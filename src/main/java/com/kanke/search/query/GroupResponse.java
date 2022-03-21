@@ -27,11 +27,15 @@ public class GroupResponse {
 	public void exec() {
 		List<Integer> groupIds = termSelector.groupIds();
 		int fromIndex = pageable.getOffset();
+		int size = groupIds.size();
+		if(fromIndex>size) {
+			return;
+		}
 		int toIndex = pageable.getOffset()+pageable.getLimit();
+		if(toIndex>size) {
+			toIndex = size;
+		}
 		List<Integer> ids = groupIds.subList(fromIndex,toIndex);
-		
-		
-		
 		for(Integer id:ids) {
 			buckets.add(new Bucket(id) {
 				

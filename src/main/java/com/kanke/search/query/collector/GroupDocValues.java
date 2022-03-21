@@ -52,7 +52,7 @@ public class GroupDocValues {
 	public TermValue getTermValue() throws IOException {
 		TermValue termValue = new TermValue();
 		for (DocValue docValue : docValuesList) {
-			if(StringUtils.equalsAnyIgnoreCase(docValue.getSortName(),groupField.getStoreNames())) {
+			if(groupField!=null&&StringUtils.equalsAnyIgnoreCase(docValue.getSortName(),groupField.getStoreNames())) {
 				termValue.addTermValue(docValue.getSortName()  ,docValue.value());
 			}else {
 				termValue.addValue(docValue.getSortName()  ,docValue.value());

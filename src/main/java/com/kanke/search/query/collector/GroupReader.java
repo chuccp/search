@@ -69,9 +69,12 @@ public class GroupReader {
 		}
 		
 		List<String> list = new ArrayList<>();
-		String[] stores = this.group.getGroupField(index).getStoreNames();
-		for(String store:stores) {
-			list.add(store);
+		GroupField groupField  = this.group.getGroupField(index);
+		if(groupField!=null) {
+			String[] stores = groupField.getStoreNames();
+			for(String store:stores) {
+				list.add(store);
+			}
 		}
 		List<Join>  jlist = this.groupIndex.joinList();
 		for(Join join:jlist) {

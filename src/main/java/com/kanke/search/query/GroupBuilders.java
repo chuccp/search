@@ -14,4 +14,14 @@ public class GroupBuilders {
 		return groupBuilder;
 	}
 
+	public static GroupBuilder groupBy(String storeName) {
+		return groupBy(GroupField.createGroupField(null, storeName));
+	}
+
+	public static GroupBuilder sum(String storeName) {
+		GroupBuilder groupBuilder = new GroupBuilder();
+		groupBuilder.sum(GroupField.createGroupField(null, storeName), null);
+		return groupBuilder;
+	}
+
 }

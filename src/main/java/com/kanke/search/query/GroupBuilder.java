@@ -3,6 +3,8 @@ package com.kanke.search.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.kanke.search.query.group.GroupTermQuery;
 import com.kanke.search.type.GroupType;
 
@@ -170,6 +172,26 @@ public class GroupBuilder {
 		public boolean isOrder() {
 			return isOrder;
 		}
+	}
+
+	private String aliasName;
+	
+	public GroupBuilder fieldName(String aliasName) {
+		if(this.reports.isEmpty()) {
+			this.aliasName = aliasName;
+			return count(aliasName);
+		}else {
+			this.aliasName = aliasName;
+			return this;
+		}
+	}
+
+	public GroupBuilder addGroupBuilder(GroupBuilder groupBuilder) {
+		List<Report>  reports = groupBuilder.reports;
+		Report report = reports.get(0);
+		report.aliasName = groupBuilder.aliasName;
+		this.root.reports.add(report);
+		return this;
 	}
 
 }

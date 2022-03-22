@@ -17,6 +17,7 @@ import com.kanke.search.model.Log;
 import com.kanke.search.model.User;
 import com.kanke.search.query.Bucket;
 import com.kanke.search.query.Group;
+import com.kanke.search.query.GroupBuilder;
 import com.kanke.search.query.GroupBuilders;
 import com.kanke.search.query.GroupField;
 import com.kanke.search.query.GroupIndex;
@@ -53,8 +54,21 @@ public class TestQuery {
 		for(Bucket bucket:bucketList) {
 			System.out.println(bucket.getTermValue().getValue("hour")+"    "+bucket.getTermValue().getValue("userName")+"  "+bucket.getFieldValue("num").getValue());
 		}
+		
+		
+
 	}
-	
+	@Test
+	public void should_test_every_test3() {
+		StoreTemplate storeTemplate = getStoreTemplate();
+		Query query1 =QueryUtils.MatchAllDocsQuery();
+		GroupBuilder groupBuilder = GroupBuilders.groupBy("userId").fieldName("num").desc().addGroupBuilder(GroupBuilders.sum("hour").fieldName("sum").desc());
+		GroupResponse groupResponse = storeTemplate.group("Log",groupBuilder, query1, Pageable.page(0,10));
+		List<Bucket> bucketList = groupResponse.getBuckets();
+		for(Bucket bucket:bucketList) {
+			System.out.println(bucket.getTermValue().getValue("userId")+"    "+bucket.getFieldValue("sum").getValue()+"  "+bucket.getFieldValue("num").getValue());
+		}
+	}
 	
 	@Test
 	public void gen_test_every_test() throws IOException {

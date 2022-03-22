@@ -26,7 +26,9 @@ import com.kanke.search.entry.StoreFileldIndex;
 import com.kanke.search.entry.StoreFileldIndexs;
 import com.kanke.search.entry.StoreFilelds;
 import com.kanke.search.query.Group;
+import com.kanke.search.query.GroupBuilder;
 import com.kanke.search.query.GroupIndex;
+import com.kanke.search.query.GroupIndexBuilders;
 import com.kanke.search.query.GroupResponse;
 import com.kanke.search.query.Pageable;
 import com.kanke.search.query.QueryUtils;
@@ -225,6 +227,18 @@ public class StoreTemplate {
 	private IndexReader getIndexReader(String index) {
 		return indexFactory.getIndexReader(index);
 		
+	}
+
+
+	public GroupResponse group(String index, Group group, Query query1, Pageable page) {
+		GroupIndex groupIndex = GroupIndexBuilders.index(index,query1).build();
+		return this.group(groupIndex, group, page);
+	}
+
+
+	public GroupResponse group(String index, GroupBuilder groupBuilder, Query query1, Pageable page) {
+		Group  group  = groupBuilder.build();
+		return this.group(index, group, query1, page);
 	}
 
 }

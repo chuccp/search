@@ -79,4 +79,14 @@ public class TermValue {
 		return this.valueList.get(num).toString();
 	}
 
+
+	public String toString(int i) {
+		return getValue(i);
+	}
+
+
+	public BytesRef get(int i) {
+		return this.valueList.get(i).getValue();
+	}
+
 }

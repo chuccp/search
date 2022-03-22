@@ -33,8 +33,9 @@ public class BytesRefValue {
 		this.docValuesType = docValuesType;
 	}
 	
-	
-	
+	public Long toNumber() {
+		return NumericUtils.sortableBytesToLong(value.bytes, 0);
+	} 
 
 	@Override
 	public String toString() {

@@ -23,6 +23,27 @@ public class GroupReader {
 	public GroupReader(GroupIndex groupIndex, Group group) {
 		this.groupIndex = groupIndex;
 		this.group = group;
+		List<Report> list = group.getReports();
+		for(Report report:list) {
+			GroupField groupField = report.getGroupField();
+			if(groupField!=null) {
+				if(StringUtils.isBlank(groupField.getIndex())) {
+					groupField.setIndex(groupIndex.getIndex());
+				}
+			}
+		}
+		GroupField[]  gfs = this.group.getGroupFields();
+		if(gfs!=null) {
+			for(GroupField groupField:gfs) {
+				if(groupField!=null) {
+					if(StringUtils.isBlank(groupField.getIndex())) {
+						groupField.setIndex(groupIndex.getIndex());
+					}
+				}
+			}
+		}
+		this.group.initMap(); 
+		
 	}
 	
 	private Map<String,String[]> sortNamesMap = new HashMap<>();
@@ -73,7 +94,21 @@ public class GroupReader {
 		if(groupField!=null) {
 			String[] stores = groupField.getStoreNames();
 			for(String store:stores) {
-				list.add(store);
+				if(!contains(list,store)) {
+					list.add(store);
+				}
+			}
+		}
+		List<Report> reports = group.getReports();
+		for(Report report:reports) {
+			if(report.getGroupField()!=null&&StringUtils.equalsIgnoreCase(index, report.getGroupField().getIndex())) {
+				GroupField gf =  report.getGroupField();
+				String[]  storeNames = gf.getStoreNames();
+				for(String storeName:storeNames) {
+					if(!contains(list,storeName)) {
+						list.add(storeName);
+					}
+				}
 			}
 		}
 		List<Join>  jlist = this.groupIndex.joinList();
@@ -87,8 +122,6 @@ public class GroupReader {
 		sortNamesMap.put(index, sorts);
 		return sorts;
 	}
-	
-	
 	private static boolean contains(List<String> list,String value) {
 		for(String v:list) {
 			if(StringUtils.equalsIgnoreCase(v, value)) {

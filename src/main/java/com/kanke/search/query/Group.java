@@ -41,10 +41,15 @@ public class Group {
 
 	public void setGroupFields(GroupField[] groupFields) {
 		this.groupFields = groupFields;
+	
+	}
+	
+	public void initMap() {
 		for(GroupField gf:groupFields) {
 			groupFieldMap.put(gf.getIndex(), gf);
 		}
 	}
+	
 	private int offset;
 
 	private int limit = 100;

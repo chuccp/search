@@ -1,11 +1,16 @@
 package com.kanke.search.query;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import org.apache.commons.lang3.math.NumberUtils;
 
 import com.kanke.search.query.collector.GroupValue;
 import com.kanke.search.query.collector.TermValue;
+import com.kanke.search.query.selector.Selector;
 import com.kanke.search.query.selector.TermSelector;
+import com.kanke.search.util.GroupUtils;
 
 public class GroupResponse {
 
@@ -19,22 +24,46 @@ public class GroupResponse {
 		this.termSelector = termSelector;
 
 	}
-	
 
 	public void exec() {
+		List<Selector> slist = new ArrayList<Selector>(termSelector.getSelectorList());
 		List<Integer> groupIds = termSelector.groupIds();
-		int fromIndex = pageable.getOffset();
-		int size = groupIds.size();
-		if(fromIndex>size) {
-			return;
+		int num = groupIds.size();
+		if (num > pageable.getOffset()) {
+			int fromIndex = pageable.getOffset();
+			int toIndex =  pageable.getOffset() +pageable.getLimit();
+			if (toIndex > num) {
+				toIndex = num;
+			}
+			slist.removeIf(v->(!v.isOrder()));
+			if(!slist.isEmpty()) {
+				Selector firstSelector = slist.get(0);
+				if(slist.size()>1) {
+					OrderSub orderSub = GroupUtils.orderOptimiz(groupIds,firstSelector, fromIndex, toIndex);
+					groupIds = orderSub.getUlist();
+					Collections.reverse(slist);
+					for (Selector selector : slist) {
+						if (selector.isReverse()) {
+							Collections.sort(groupIds,(v1, v2) -> NumberUtils.compare(selector.getGroupValue(v2).getValue(), selector.getGroupValue(v1).getValue()));
+						} else {
+							Collections.sort(groupIds,(v1, v2) -> NumberUtils.compare(selector.getGroupValue(v1).getValue(), selector.getGroupValue(v2).getValue()));
+						}
+					}
+					groupIds = orderSub.getPageList();
+				}else {
+					if (firstSelector.isReverse()) {
+						Collections.sort(groupIds,(v1, v2) -> NumberUtils.compare(firstSelector.getGroupValue(v2).getValue(), firstSelector.getGroupValue(v1).getValue()));
+					} else {
+						Collections.sort(groupIds,(v1, v2) -> NumberUtils.compare(firstSelector.getGroupValue(v1).getValue(), firstSelector.getGroupValue(v2).getValue()));
+					}
+					groupIds = groupIds.subList(fromIndex,toIndex);
+				}
+			}else {
+				groupIds = groupIds.subList(fromIndex,toIndex);
+			}
 		}
-		int toIndex = pageable.getOffset()+pageable.getLimit();
-		if(toIndex>size) {
-			toIndex = size;
-		}
-		List<Integer> ids = groupIds.subList(fromIndex,toIndex);
-		for(Integer id:ids) {
-			buckets.add(new Bucket(id) {
+		for (Integer groupId : groupIds) {
+			buckets.add(new Bucket(groupId) {
 				
 				@Override
 				public TermValue getTermValue() {
@@ -52,9 +81,7 @@ public class GroupResponse {
 				}
 			});
 		}
-		
 	}
-
 
 	private List<String> amountName = new ArrayList<String>();
 

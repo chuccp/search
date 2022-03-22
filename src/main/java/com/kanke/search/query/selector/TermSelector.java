@@ -13,6 +13,13 @@ import com.kanke.search.query.collector.TermValue;
 public class TermSelector {
 
 	private Map<Integer, TermValue> termMap = new LinkedHashMap<>();
+	
+	
+	
+
+	public Map<Integer, TermValue> getTermMap() {
+		return termMap;
+	}
 
 	private Map<String, Selector> selectorMap = new LinkedHashMap<>();
 
